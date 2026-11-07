@@ -1,73 +1,40 @@
-import { useState } from "react"
+import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-router-dom"
 import { useSession } from "./account/session"
 import { Activity } from "./screens/Activity"
 import { CreateAccount } from "./screens/CreateAccount"
 import { Help } from "./screens/Help"
+import { Landing } from "./screens/Landing"
 import { Receive } from "./screens/Receive"
 import { SendFlow } from "./screens/SendFlow"
 import { Settings } from "./screens/Settings"
 import { Shell } from "./screens/Shell"
 import { Unlock } from "./screens/Unlock"
-import { SiteLayout } from "./ui/SiteLayout"
 
-type Tab = "home" | "activity" | "help" | "settings"
+export function App() { return <BrowserRouter><AppRoutes /></BrowserRouter> }
 
-export function App() {
+function AppRoutes() {
   const session = useSession()
-  const [tab, setTab] = useState<Tab>("home")
-  const [overlay, setOverlay] = useState<"send" | "receive" | null>(null)
+  const navigate = useNavigate()
+  if (session.status === "loading") return <main className="route-splash">Opening your secure wallet…</main>
+  const entry = session.status === "unlocked" ? "/wallet" : session.status === "locked" ? "/unlock" : "/create"
+  return <Routes>
+    <Route path="/" element={<Landing onOpen={() => navigate(entry)} />} />
+    <Route path="/create" element={session.status === "none" ? <AuthFrame><CreateAccount /></AuthFrame> : <Navigate to={entry} replace />} />
+    <Route path="/unlock" element={session.status === "locked" ? <AuthFrame><Unlock /></AuthFrame> : <Navigate to={entry} replace />} />
+    <Route path="/wallet" element={<Wallet tab="home" />} />
+    <Route path="/activity" element={<Wallet tab="activity" />} />
+    <Route path="/help" element={<Wallet tab="help" />} />
+    <Route path="/settings" element={<Wallet tab="settings" />} />
+    <Route path="/send" element={session.status === "unlocked" ? <SendFlow onClose={() => navigate("/wallet")} /> : <Navigate to="/" replace />} />
+    <Route path="/receive" element={session.status === "unlocked" ? <Receive onClose={() => navigate("/wallet")} /> : <Navigate to="/" replace />} />
+    <Route path="*" element={<Navigate to="/" replace />} />
+  </Routes>
+}
 
-  if (session.status === "loading") {
-    return (
-      <SiteLayout variant="auth">
-        <p className="auth-splash">Opening…</p>
-      </SiteLayout>
-    )
-  }
+function AuthFrame({ children }: { children: React.ReactNode }) { return <main className="auth-page"><a className="brand" href="/">RPay <span>Protocol</span></a><section className="auth-card">{children}</section></main> }
 
-  if (session.status === "none") {
-    return (
-      <SiteLayout variant="auth">
-        <CreateAccount />
-      </SiteLayout>
-    )
-  }
-
-  if (session.status === "locked") {
-    return (
-      <SiteLayout variant="auth">
-        <Unlock />
-      </SiteLayout>
-    )
-  }
-
-  if (overlay === "send") {
-    return (
-      <SiteLayout variant="app">
-        <SendFlow onClose={() => setOverlay(null)} />
-      </SiteLayout>
-    )
-  }
-
-  if (overlay === "receive") {
-    return (
-      <SiteLayout variant="app">
-        <Receive onClose={() => setOverlay(null)} />
-      </SiteLayout>
-    )
-  }
-
-  return (
-    <SiteLayout variant="app">
-      <Shell
-        tab={tab}
-        onTab={setTab}
-        onSend={() => setOverlay("send")}
-        onReceive={() => setOverlay("receive")}
-        activity={<Activity />}
-        help={<Help />}
-        settings={<Settings />}
-      />
-    </SiteLayout>
-  )
+function Wallet({ tab }: { tab: "home" | "activity" | "help" | "settings" }) {
+  const session = useSession(); const navigate = useNavigate()
+  if (session.status !== "unlocked") return <Navigate to={session.status === "locked" ? "/unlock" : "/create"} replace />
+  return <Shell tab={tab} onTab={(next) => navigate(next === "home" ? "/wallet" : `/${next}`)} onSend={() => navigate("/send")} onReceive={() => navigate("/receive")} activity={<Activity />} help={<Help />} settings={<Settings />} />
 }
