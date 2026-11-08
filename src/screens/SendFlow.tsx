@@ -26,6 +26,7 @@ export function SendFlow({ onClose }: { onClose: () => void }) {
   const [signature, setSignature] = useState("")
   const [balance, setBalance] = useState<number | null>(null)
   const [online, setOnline] = useState<boolean | null>(null)
+  const [copied, setCopied] = useState(false)
   const lamports = solToLamports(amount)
   const me = session.status === "unlocked" ? session.publicKey : ""
   const myName = session.status === "unlocked" ? session.alias : ""
@@ -235,7 +236,8 @@ export function SendFlow({ onClose }: { onClose: () => void }) {
           <div className="sheet center">
             <h2>Show this code to the person with internet.</h2>
             <QrImage text={code} />
-            <p className="hint">Waiting for them</p>
+            <p className="hint">They can scan this code, or paste the copied code in Relay mode.</p>
+            <button className="copy-code" type="button" onClick={() => { void navigator.clipboard.writeText(code).then(() => setCopied(true)) }}>{copied ? "Code copied" : "Copy signed payment code"}</button>
             <button className="primary" type="button" onClick={onClose}>Done</button>
           </div>
         ) : null}
