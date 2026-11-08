@@ -9,7 +9,6 @@ import { IconBack } from "../ui/Icons"
 import { Keypad } from "../ui/Keypad"
 import { QrImage } from "../ui/QrImage"
 import { Scanner } from "../ui/Scanner"
-import { Slide } from "../ui/Slide"
 
 type Payee = { alias: string; publicKey: string }
 type Step = "amount" | "who" | "scanRecipient" | "review" | "scan" | "show" | "done"
@@ -177,7 +176,7 @@ export function SendFlow({ onClose }: { onClose: () => void }) {
               <p className="hint">SOL on devnet</p>
               <p className="hint">Balance {balance === null ? "—" : `${formatSol(balance)} SOL`}</p>
               <Keypad value={amount} onChange={setAmount} />
-              <Slide enabled={Boolean(lamports)} onConfirm={() => setStep("who")} />
+              <button className="primary send-continue" type="button" disabled={!lamports} onClick={() => setStep("who")}>Continue</button>
             </div>
           </>
         ) : null}

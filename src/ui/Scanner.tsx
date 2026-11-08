@@ -37,6 +37,7 @@ export function Scanner({ onCode }: { onCode: (value: string) => void }) {
   const onCodeRef = useRef(onCode)
   const [cameraError, setCameraError] = useState("")
   const [pasted, setPasted] = useState("")
+  const [pasteOpen, setPasteOpen] = useState(false)
 
   onCodeRef.current = onCode
 
@@ -80,22 +81,27 @@ export function Scanner({ onCode }: { onCode: (value: string) => void }) {
     <div className="stack">
       <div id={regionId} className="reader" />
       {cameraError ? <p className="hint">{cameraError}</p> : null}
-      <form
-        className="paste"
-        onSubmit={(event) => {
-          event.preventDefault()
-          const value = pasted.trim()
-          if (!value || seen.current) return
-          seen.current = true
-          onCode(value)
-        }}
-      >
-        <label>
-          Or paste their code
-          <input value={pasted} onChange={(event) => setPasted(event.target.value)} autoCapitalize="off" spellCheck={false} />
-        </label>
-        <button className="primary" type="submit">Use this code</button>
-      </form>
+      {pasteOpen ? (
+        <form
+          className="paste paste--open"
+          onSubmit={(event) => {
+            event.preventDefault()
+            const value = pasted.trim()
+            if (!value || seen.current) return
+            seen.current = true
+            onCode(value)
+          }}
+        >
+          <label className="field">
+            Paste signed payment code
+            <textarea value={pasted} onChange={(event) => setPasted(event.target.value)} autoCapitalize="off" spellCheck={false} rows={3} autoFocus />
+          </label>
+          <button className="primary" type="submit">Verify pasted code</button>
+          <button className="paste-cancel" type="button" onClick={() => { setPasteOpen(false); setPasted("") }}>Use camera instead</button>
+        </form>
+      ) : (
+        <button className="paste-trigger" type="button" onClick={() => setPasteOpen(true)}>Paste a code instead</button>
+      )}
     </div>
   )
 }

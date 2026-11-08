@@ -7,3 +7,7 @@ data
 dev-dist
 .vercel
 mlh-screenshot-landing.png
+docs/mlh/*.webm
+docs/mlh/*.mp4
+docs/mlh/intro.mp4
+docs/mlh/concat.txt
