@@ -16,8 +16,8 @@ export function Settings() {
         <p className="muted">Network, backup, and lock.</p>
       </header>
       <div className="panel stack">
-        <h2>Your name</h2>
-        <p className="wallet-name-inline">{session.alias}</p>
+        <h2>Username</h2>
+        <p className="wallet-name-inline">@{session.alias}</p>
         <h2>Network</h2>
         <div className="network">
           <button className="choice" type="button" aria-pressed="true">

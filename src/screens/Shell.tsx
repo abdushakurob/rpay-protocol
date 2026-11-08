@@ -4,132 +4,14 @@ import { useSession } from "../account/session"
 import { publishName } from "../directory/directory"
 import { formatSol } from "../format"
 import { fundDevnet, readBalance, syncPayments } from "../solana/chain"
+import { IconArrow, IconDown, IconPlus, IconRefresh, IconUp, SolanaMark } from "../ui/Icons"
 import { WalletMobileNav, WalletSidebar, type WalletTab } from "../ui/WalletNav"
 
-export function Shell({
-  tab,
-  onTab,
-  onSend,
-  onReceive,
-  help,
-  activity,
-  settings,
-}: {
-  tab: WalletTab
-  onTab: (tab: WalletTab) => void
-  onSend: () => void
-  onReceive: () => void
-  help: ReactNode
-  activity: ReactNode
-  settings: ReactNode
-}) {
-  const session = useSession()
-  const [lamports, setLamports] = useState<number | null>(null)
-  const [rows, setRows] = useState<Payment[]>([])
-  const [note, setNote] = useState("")
-  const [funding, setFunding] = useState(false)
-  const alias = session.status === "unlocked" ? session.alias : ""
-  const publicKey = session.status === "unlocked" ? session.publicKey : ""
-
-  async function refresh() {
-    if (!publicKey) return
-    const [balance, list] = await Promise.all([
-      readBalance(publicKey).catch(() => null),
-      syncPayments(publicKey).catch(() => loadPayments()),
-    ])
-    if (balance !== null) setLamports(balance)
-    setRows(list)
-  }
-
-  useEffect(() => {
-    void refresh()
-    if (session.status === "unlocked" && !session.published) {
-      void publishName({ alias: session.alias, publicKey: session.publicKey }).then((result) => {
-        if (result.published) void session.notePublished()
-      })
-    }
-  }, [publicKey])
-
-  async function fund() {
-    setFunding(true)
-    setNote("")
-    try {
-      await fundDevnet(publicKey)
-      await refresh()
-      setNote("1 SOL added from devnet.")
-    } catch {
-      setNote("Devnet is busy right now. Try again in a little while.")
-    } finally {
-      setFunding(false)
-    }
-  }
-
-  return (
-    <main className="wallet-shell">
-      <WalletSidebar tab={tab} alias={alias} onTab={onTab} />
-      <div className="wallet-main">
-        {tab === "home" ? (
-          <section className="wallet-page">
-            <header className="wallet-hero">
-              <div className="wallet-hero-copy">
-                <p className="eyebrow">Portfolio</p>
-                <p className="balance-display">{lamports === null ? "—" : formatSol(lamports)}</p>
-                <p className="balance-unit">SOL · Devnet</p>
-                <p className="wallet-name">{alias}</p>
-              </div>
-              <div className="wallet-hero-actions">
-                <button className="pill primary" type="button" onClick={onReceive}>Receive</button>
-                <button className="pill accent" type="button" onClick={onSend}>Send</button>
-                <button className="pill ghost" type="button" onClick={() => void refresh()}>Refresh</button>
-                <button className="pill ghost" type="button" onClick={() => void fund()} disabled={funding}>
-                  {funding ? "Funding…" : "Fund"}
-                </button>
-              </div>
-            </header>
-            {note ? <p className="banner info">{note}</p> : null}
-            <div className="wallet-grid">
-              <section className="panel">
-                <h2>Assets</h2>
-                <div className="asset-row">
-                  <div className="asset-icon">S</div>
-                  <div>
-                    <strong>Solana</strong>
-                    <span className="muted">SOL</span>
-                  </div>
-                  <strong className="asset-amount">{lamports === null ? "—" : `${formatSol(lamports)} SOL`}</strong>
-                </div>
-              </section>
-              <section className="panel">
-                <h2>Latest activity</h2>
-                {rows.length === 0 ? (
-                  <p className="muted">No payments yet.</p>
-                ) : (
-                  <ul className="activity-list">
-                    {rows.slice(0, 5).map((row) => (
-                      <li className="activity-item" key={row.id}>
-                        <div>
-                          <strong>
-                            {row.direction === "in" ? `From ${row.name}` : row.direction === "pass" ? `Passed on to ${row.name}` : row.name}
-                          </strong>
-                          <span className="muted">{paymentLabel(row)}</span>
-                        </div>
-                        <strong className={row.direction === "in" ? "pos" : ""}>
-                          {row.direction === "in" ? "+" : row.direction === "pass" ? "" : "−"}
-                          {formatSol(row.lamports)}
-                        </strong>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </section>
-            </div>
-          </section>
-        ) : null}
-        {tab === "activity" ? activity : null}
-        {tab === "help" ? help : null}
-        {tab === "settings" ? settings : null}
-      </div>
-      <WalletMobileNav tab={tab} onTab={onTab} />
-    </main>
-  )
+export function Shell({ tab, onTab, onSend, onReceive, onRelay, relay, activity, settings }: { tab: WalletTab; onTab: (tab: WalletTab) => void; onSend: () => void; onReceive: () => void; onRelay: () => void; relay: ReactNode; activity: ReactNode; settings: ReactNode }) {
+  const session = useSession(); const [lamports, setLamports] = useState<number | null>(null); const [rows, setRows] = useState<Payment[]>([]); const [note, setNote] = useState(""); const [funding, setFunding] = useState(false); const [updatedAt, setUpdatedAt] = useState<number | null>(null); const [refreshing, setRefreshing] = useState(false)
+  const alias = session.status === "unlocked" ? session.alias : ""; const publicKey = session.status === "unlocked" ? session.publicKey : ""
+  async function refresh() { if (!publicKey) return; setRefreshing(true); const [balance, list] = await Promise.all([readBalance(publicKey).catch(() => null), syncPayments(publicKey).catch(() => loadPayments())]); if (balance !== null) { setLamports(balance); setUpdatedAt(Date.now()) }; setRows(list); setRefreshing(false) }
+  useEffect(() => { void refresh(); if (session.status === "unlocked" && !session.published) void publishName({ alias: session.alias, publicKey: session.publicKey }).then((result) => { if (result.published) void session.notePublished() }) }, [publicKey])
+  async function fund() { setFunding(true); setNote(""); try { await fundDevnet(publicKey); await refresh(); setNote("1 SOL added from devnet.") } catch { setNote("Devnet is busy right now. Try again in a little while.") } finally { setFunding(false) } }
+  return <main className="wallet-shell"><WalletSidebar tab={tab} alias={alias} onTab={onTab} /><div className="wallet-main">{tab === "home" ? <section className="wallet-page wallet-page--home"><header className="wallet-home-head"><div className="wallet-identity"><span className="identity-avatar">{alias.slice(0, 1).toUpperCase()}</span><div><p className="eyebrow">Your RPay wallet</p><strong>@{alias}</strong><span className="online-state"><i /> Devnet connected</span></div></div><button className={refreshing ? "refresh-wallet is-refreshing" : "refresh-wallet"} type="button" onClick={() => void refresh()} aria-label="Refresh wallet"><IconRefresh /></button></header><section className="wallet-balance-card"><div className="wallet-token"><SolanaMark /><span>SOL <small>Devnet</small></span></div>{lamports === null ? <div className="balance-loading" role="status"><i aria-hidden="true" /><span>Fetching balance</span></div> : <p className="balance-display">{formatSol(lamports)} <small>SOL</small></p>}<p className="balance-unit">{updatedAt ? `Last updated ${new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(updatedAt)}` : "Syncing wallet"}</p><div className="wallet-action-row"><button className="wallet-action wallet-action--primary" type="button" onClick={() => void fund()} disabled={funding}><span><IconPlus /></span><b>{funding ? "Funding…" : "Fund"}</b></button><button className="wallet-action" type="button" onClick={onSend}><span><IconUp /></span><b>Send</b></button><button className="wallet-action" type="button" onClick={onReceive}><span><IconDown /></span><b>Receive</b></button><button className="wallet-action" type="button" onClick={onRelay}><span><IconRefresh /></span><b>Relay</b></button></div></section>{note ? <p className="banner info">{note}</p> : null}<div className="wallet-grid"><section className="panel"><div className="panel-title"><h2>Recent activity</h2><button type="button" onClick={() => onTab("activity")}>See all <IconArrow /></button></div>{rows.length === 0 ? <p className="muted">No payments yet. Send, receive, or relay a payment to get started.</p> : <ul className="activity-list">{rows.slice(0, 5).map((row) => <li className="activity-item" key={row.id}><div><strong>{row.direction === "in" ? `Received from ${row.name}` : row.direction === "pass" ? `Relayed to ${row.name}` : `Sent to ${row.name}`}</strong><span className="muted">{paymentLabel(row)}</span></div><strong className={row.direction === "in" ? "pos" : ""}>{row.direction === "in" ? "+" : row.direction === "pass" ? "" : "−"}{formatSol(row.lamports)}</strong></li>)}</ul>}</section></div></section> : null}{tab === "activity" ? activity : null}{tab === "relay" ? relay : null}{tab === "settings" ? settings : null}</div><WalletMobileNav tab={tab} onTab={onTab} /></main>
 }

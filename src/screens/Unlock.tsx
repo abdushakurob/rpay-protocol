@@ -1,109 +1,12 @@
-import { useState } from "react"
+import { useState, type FormEvent } from "react"
+import { Link } from "react-router-dom"
 import { useSession } from "../account/session"
-import { resetVaultPassword } from "../account/vault"
 import { phraseIsValid } from "../account/phrase"
+import { resetVaultPassword, writeVault } from "../account/vault"
 
 export function Unlock() {
-  const session = useSession()
-  const [mode, setMode] = useState<"password" | "words">("password")
-  const [password, setPassword] = useState("")
-  const [phrase, setPhrase] = useState("")
-  const [newPassword, setNewPassword] = useState("")
-  const [confirm, setConfirm] = useState("")
-  const [error, setError] = useState("")
-  const [busy, setBusy] = useState(false)
-  const alias = session.status === "locked" ? session.alias : ""
-
-  if (mode === "password") {
-    return (
-      <form
-        className="auth-form stack"
-        onSubmit={async (event) => {
-          event.preventDefault()
-          setBusy(true)
-          setError("")
-          try {
-            await session.unlock(password)
-          } catch {
-            setError("That password doesn't open this wallet.")
-          } finally {
-            setBusy(false)
-          }
-        }}
-      >
-        <h1>Welcome back</h1>
-        <p className="auth-alias">{alias}</p>
-        <label className="field">
-          Password
-          <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required />
-        </label>
-        {error ? <p className="error">{error}</p> : null}
-        <button className="pill accent wide" type="submit" disabled={busy}>{busy ? "Opening…" : "Unlock"}</button>
-        <button className="pill ghost wide" type="button" onClick={() => { setMode("words"); setError(""); setPassword("") }}>
-          Use your 12 words instead
-        </button>
-      </form>
-    )
-  }
-
-  return (
-    <form
-      className="auth-form stack"
-      onSubmit={async (event) => {
-        event.preventDefault()
-        setError("")
-        if (!phraseIsValid(phrase)) {
-          setError("Enter all 12 words, separated by spaces.")
-          return
-        }
-        if (newPassword.length < 8) {
-          setError("Use at least 8 characters for the new password.")
-          return
-        }
-        if (newPassword !== confirm) {
-          setError("Those passwords don't match.")
-          return
-        }
-        setBusy(true)
-        try {
-          await resetVaultPassword(phrase, newPassword)
-          await session.unlock(newPassword)
-        } catch (err) {
-          setError(err instanceof Error && err.message === "phrase"
-            ? "Those words don't match this wallet."
-            : "Couldn't open this wallet. Check the words and try again.")
-        } finally {
-          setBusy(false)
-        }
-      }}
-    >
-      <h1>Your 12 words</h1>
-      <p className="muted">Paste or type them in order. You can set a new password.</p>
-      <p className="auth-alias">{alias}</p>
-      <label className="field">
-        Recovery phrase
-        <textarea
-          value={phrase}
-          onChange={(event) => setPhrase(event.target.value)}
-          rows={4}
-          autoCapitalize="off"
-          spellCheck={false}
-          required
-        />
-      </label>
-      <label className="field">
-        New password
-        <input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} required />
-      </label>
-      <label className="field">
-        Confirm password
-        <input type="password" value={confirm} onChange={(event) => setConfirm(event.target.value)} required />
-      </label>
-      {error ? <p className="error">{error}</p> : null}
-      <button className="pill accent wide" type="submit" disabled={busy}>{busy ? "Opening…" : "Unlock"}</button>
-      <button className="pill ghost wide" type="button" onClick={() => { setMode("password"); setError(""); setPhrase(""); setNewPassword(""); setConfirm("") }}>
-        Back to password
-      </button>
-    </form>
-  )
+  const session = useSession(); const isNewDevice = session.status === "none"; const [mode, setMode] = useState<"password" | "words">(isNewDevice ? "words" : "password"); const [password, setPassword] = useState(""); const [phrase, setPhrase] = useState(""); const [alias, setAlias] = useState(""); const [newPassword, setNewPassword] = useState(""); const [confirm, setConfirm] = useState(""); const [error, setError] = useState(""); const [busy, setBusy] = useState(false); const savedAlias = session.status === "locked" ? session.alias : ""
+  async function recover(event: FormEvent) { event.preventDefault(); setError(""); if (!phraseIsValid(phrase)) return setError("Enter all 12 recovery words, separated by spaces."); if (isNewDevice && !/^[a-z0-9]{3,20}$/.test(alias)) return setError("Choose a username with 3 to 20 letters or numbers."); if (newPassword.length < 8) return setError("Choose a password with at least 8 characters."); if (newPassword !== confirm) return setError("Passwords do not match."); setBusy(true); try { if (isNewDevice) { const result = await writeVault(alias.toLowerCase(), phrase, newPassword); result.secretKey.fill(0) } else await resetVaultPassword(phrase, newPassword); await session.unlock(newPassword) } catch (err) { setError(err instanceof Error && err.message === "phrase" ? "These words do not match this wallet." : "Unable to recover this wallet. Check the words and try again.") } finally { setBusy(false) } }
+  if (mode === "password") return <form className="auth-form stack" onSubmit={async (event) => { event.preventDefault(); setBusy(true); setError(""); try { await session.unlock(password) } catch { setError("That password does not open this wallet.") } finally { setBusy(false) } }}><p className="auth-kicker">Welcome back</p><h1>Unlock your wallet.</h1><p className="auth-alias">@{savedAlias}</p><label className="field">Password<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" required /></label>{error ? <p className="error" role="alert">{error}</p> : null}<button className="pill accent wide" type="submit" disabled={busy}>{busy ? "Unlocking…" : "Unlock wallet"}</button><button className="pill ghost wide" type="button" onClick={() => { setMode("words"); setError("") }}>Use recovery phrase</button><p className="auth-switch">New here? <Link to="/create">Create a wallet</Link></p></form>
+  return <form className="auth-form stack" onSubmit={(event) => void recover(event)}><p className="auth-kicker">{isNewDevice ? "Recover wallet" : "Recovery phrase"}</p><h1>{isNewDevice ? "Bring your wallet to this device." : "Reset your wallet password."}</h1><p className="muted">Your 12 words restore your wallet. RPay never stores them.</p>{isNewDevice ? <label className="field username-field">Username<span className="username-input"><b aria-hidden="true">@</b><input value={alias} onChange={(event) => setAlias(event.target.value.toLowerCase().replace(/^@/, ""))} placeholder="yourname" autoCapitalize="off" spellCheck={false} required /></span></label> : <p className="auth-alias">@{savedAlias}</p>}<label className="field">Recovery phrase<textarea value={phrase} onChange={(event) => setPhrase(event.target.value)} rows={4} autoCapitalize="off" spellCheck={false} required /></label><label className="field">New password<input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} autoComplete="new-password" required /></label><label className="field">Confirm new password<input type="password" value={confirm} onChange={(event) => setConfirm(event.target.value)} autoComplete="new-password" required /></label>{error ? <p className="error" role="alert">{error}</p> : null}<button className="pill accent wide" type="submit" disabled={busy}>{busy ? "Restoring…" : "Restore wallet"}</button>{!isNewDevice ? <button className="pill ghost wide" type="button" onClick={() => { setMode("password"); setError("") }}>Back to password</button> : <p className="auth-switch">Need a new wallet? <Link to="/create">Create one</Link></p>}</form>
 }

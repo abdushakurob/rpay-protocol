@@ -12,7 +12,7 @@ import { Scanner } from "../ui/Scanner"
 import { Slide } from "../ui/Slide"
 
 type Payee = { alias: string; publicKey: string }
-type Step = "amount" | "who" | "review" | "scan" | "show" | "done"
+type Step = "amount" | "who" | "scanRecipient" | "review" | "scan" | "show" | "done"
 
 export function SendFlow({ onClose }: { onClose: () => void }) {
   const session = useSession()
@@ -69,7 +69,7 @@ export function SendFlow({ onClose }: { onClose: () => void }) {
     }
     const alias = text.toLowerCase()
     if (!isAlias(alias)) {
-      setError("Enter a name or a wallet address.")
+      setError("Enter a username or wallet address.")
       return
     }
     if (alias === myName) {
@@ -163,6 +163,7 @@ export function SendFlow({ onClose }: { onClose: () => void }) {
           <button className="back" type="button" aria-label="Back" onClick={() => {
             if (step === "amount") onClose()
             else if (step === "who") setStep("amount")
+            else if (step === "scanRecipient") setStep("who")
             else if (step === "review") setStep("who")
             else onClose()
           }}><IconBack /></button>
@@ -182,25 +183,37 @@ export function SendFlow({ onClose }: { onClose: () => void }) {
         ) : null}
         {step === "who" ? (
           <form className="sheet stack send-who" onSubmit={(event) => { event.preventDefault(); void choose(typed) }}>
-            <h2>Who are you paying?</h2>
-            <p className="muted">RPay name or Solana wallet address.</p>
+            <p className="flow-kicker">Step 2 of 3 · Recipient</p>
+            <h2>Where should this go?</h2>
+            <p className="muted">Enter an RPay username or wallet address. Scan only when you have a code in front of you.</p>
             <label className="field">
-              Name or address
-              <input value={typed} onChange={(event) => setTyped(event.target.value)} autoCapitalize="off" spellCheck={false} placeholder="e.g. mina" />
+              Username or address
+              <input value={typed} onChange={(event) => setTyped(event.target.value.replace(/^@/, ""))} autoCapitalize="off" spellCheck={false} placeholder="e.g. @mina" />
             </label>
             {saved.filter((entry) => entry.publicKey !== me).map((entry) => (
               <button className="choice" type="button" key={entry.alias} onClick={() => void choose(entry.alias)}>
-                <strong>{entry.alias}</strong>
+              <strong>@{entry.alias}</strong>
                 <span className="hint">{shortAddress(entry.publicKey)}</span>
               </button>
             ))}
             {error ? <p className="error">{error}</p> : null}
             <button className="primary" type="submit">Continue</button>
-            <Scanner onCode={(value) => void choose(value)} />
+            <button className="scan-trigger" type="button" onClick={() => setStep("scanRecipient")}>Scan a recipient code <span>↗</span></button>
           </form>
+        ) : null}
+        {step === "scanRecipient" ? (
+          <div className="sheet stack camera-screen">
+            <p className="flow-kicker">Step 2 of 3 · Scan recipient</p>
+            <h2>Point your camera at their RPay code.</h2>
+            <p className="hint">The camera only opens for this step. Nothing is sent when you scan.</p>
+            {error ? <p className="error" role="alert">{error}</p> : null}
+            <Scanner onCode={(value) => void choose(value)} />
+            <button className="ghost" type="button" onClick={() => setStep("who")}>Enter details instead</button>
+          </div>
         ) : null}
         {step === "review" && payee ? (
           <div className="sheet stack">
+            <p className="flow-kicker">Step 3 of 3 · Review</p>
             <h2>Send {formatSol(lamports ?? 0)} SOL to {label}?</h2>
             <p className="hint">A small fee comes from your balance.</p>
             <p className="quiet">Devnet</p>
@@ -213,6 +226,7 @@ export function SendFlow({ onClose }: { onClose: () => void }) {
         ) : null}
         {step === "scan" ? (
           <div className="sheet stack">
+            <p className="flow-kicker">Offline relay</p>
             <h2>Someone nearby needs internet. Scan the code on their phone.</h2>
             {error ? <p className="error">{error}</p> : null}
             <Scanner onCode={signFromCode} />

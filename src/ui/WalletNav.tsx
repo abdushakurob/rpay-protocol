@@ -1,11 +1,11 @@
 import { IconHelp, IconHome, IconList, IconSettings } from "./Icons"
 
-export type WalletTab = "home" | "activity" | "help" | "settings"
+export type WalletTab = "home" | "activity" | "relay" | "settings"
 
 const ITEMS: { id: WalletTab; label: string; Icon: typeof IconHome }[] = [
   { id: "home", label: "Wallet", Icon: IconHome },
   { id: "activity", label: "Activity", Icon: IconList },
-  { id: "help", label: "Help", Icon: IconHelp },
+  { id: "relay", label: "Relay", Icon: IconHelp },
   { id: "settings", label: "Settings", Icon: IconSettings },
 ]
 
@@ -41,7 +41,7 @@ export function WalletSidebar({
           </button>
         ))}
       </nav>
-      <p className="wallet-sidebar-note">Devnet · Keys on this device</p>
+      <p className="wallet-sidebar-note">Devnet · Your wallet stays under your control</p>
     </aside>
   )
 }

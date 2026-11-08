@@ -4,6 +4,7 @@ import { isAlias } from "../format"
 import { createPhrase, phraseIsValid } from "../account/phrase"
 import { useSession } from "../account/session"
 import { writeVault } from "../account/vault"
+import { Link } from "react-router-dom"
 
 export function CreateAccount() {
   const session = useSession()
@@ -25,7 +26,7 @@ export function CreateAccount() {
     setError("")
     const name = alias.trim().toLowerCase()
     if (!isAlias(name)) {
-      setError("Use 3 to 20 letters or numbers.")
+      setError("Use 3 to 20 letters or numbers for your username.")
       return
     }
     if (password.length < 8) {
@@ -105,10 +106,10 @@ export function CreateAccount() {
   return (
     <form className="auth-form stack" onSubmit={start}>
       <h1>Create your account</h1>
-      <p className="muted">Your name is how other people pay you on RPay.</p>
-      <label className="field">
-        Your name
-        <input value={alias} onChange={(event) => setAlias(event.target.value.toLowerCase())} autoCapitalize="off" spellCheck={false} required />
+      <p className="muted">Choose the username people will use to pay you on RPay.</p>
+      <label className="field username-field">
+        Username
+        <span className="username-input"><b aria-hidden="true">@</b><input value={alias} onChange={(event) => setAlias(event.target.value.toLowerCase().replace(/^@/, ""))} autoCapitalize="off" spellCheck={false} placeholder="yourname" required /></span>
       </label>
       <label className="field">
         Password
@@ -120,6 +121,7 @@ export function CreateAccount() {
       </label>
       {error ? <p className="error">{error}</p> : null}
       <button className="pill accent wide" type="submit">Continue</button>
+      <p className="auth-switch">Already have an RPay wallet? <Link to="/unlock">Sign in or recover it</Link></p>
     </form>
   )
 }

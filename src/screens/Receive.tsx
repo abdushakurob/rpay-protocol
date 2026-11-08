@@ -21,9 +21,10 @@ export function Receive({ onClose }: { onClose: () => void }) {
           <span />
         </div>
         <div className="sheet center">
-          <h2>{session.alias}</h2>
+          <p className="flow-kicker">Your RPay username</p>
+          <h2>@{session.alias}</h2>
           <QrImage text={code} />
-          <p className="hint">Wallet address</p>
+          <p className="hint">Share your username or wallet address to receive SOL.</p>
           <p>{shortAddress(session.publicKey)}</p>
           <button
             className="primary"

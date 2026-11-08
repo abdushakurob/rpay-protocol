@@ -38,3 +38,7 @@ export function IconBack() {
 export function IconArrow() {
   return <Svg><path d="M5 12h14M13 6l6 6-6 6" /></Svg>
 }
+
+export function SolanaMark() {
+  return <svg viewBox="0 0 32 28" aria-label="Solana" role="img"><defs><linearGradient id="solana-gradient" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#14F195" /><stop offset="1" stopColor="#9945FF" /></linearGradient></defs><path fill="url(#solana-gradient)" d="M6.6 2.5h20.1c.8 0 1.2 1 .6 1.6l-4 4a2 2 0 0 1-1.4.6H1.8C1 8.7.6 7.7 1.2 7l4-4a2 2 0 0 1 1.4-.5ZM6.6 11.8h20.1c.8 0 1.2 1 .6 1.6l-4 4a2 2 0 0 1-1.4.6H1.8c-.8 0-1.2-1-.6-1.6l4-4a2 2 0 0 1 1.4-.6ZM6.6 21.1h20.1c.8 0 1.2 1 .6 1.6l-4 4a2 2 0 0 1-1.4.6H1.8c-.8 0-1.2-1-.6-1.6l4-4a2 2 0 0 1 1.4-.6Z" /></svg>
+}
