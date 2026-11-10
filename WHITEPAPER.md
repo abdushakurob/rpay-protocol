@@ -84,4 +84,4 @@ RPay's core contribution is a clean division of responsibility: **the payer auth
 
 - [Solana transaction documentation](https://solana.com/docs/core/transactions)
 - [Solana confirmation and expiration guidance](https://solana.com/developers/guides/advanced/confirmation)
-- [RPay source repository](https://github.com/abdushakurob/rpay)
+- [RPay source repository](https://github.com/abdushakurob/rpay-protocol)

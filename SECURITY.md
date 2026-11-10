@@ -6,7 +6,7 @@ RPay is experimental software targeting Solana Devnet. It is not audited or appr
 
 ## Reporting a vulnerability
 
-Please use [GitHub's private vulnerability reporting feature](https://github.com/abdushakurob/rpay/security) if it is enabled for this repository. Otherwise, open a public issue **without exploit details, secrets, wallet phrases, or sensitive reproduction data** asking maintainers for a private reporting channel.
+Please use [GitHub's private vulnerability reporting feature](https://github.com/abdushakurob/rpay-protocol/security) if it is enabled for this repository. Otherwise, open a public issue **without exploit details, secrets, wallet phrases, or sensitive reproduction data** asking maintainers for a private reporting channel.
 
 Include affected commit/version, impact, reproduction prerequisites and a minimal safe proof of concept where appropriate. Do not test against other people's wallets or deploy attacks against public services.
 
