@@ -1,0 +1,39 @@
+{
+  "name": "rpay",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "devnet": "node scripts/devnet-session.mjs",
+    "send-devnet": "node scripts/send-devnet.mjs"
+  },
+  "dependencies": {
+    "@noble/hashes": "^1.8.0",
+    "@scure/bip39": "^1.6.0",
+    "@solana/web3.js": "^1.98.4",
+    "buffer": "^6.0.3",
+    "events": "^3.3.0",
+    "html5-qrcode": "^2.3.8",
+    "qrcode": "^1.5.4",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-router-dom": "^7.18.5",
+    "stream-browserify": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vercel/node": "^5.0.2",
+    "@vitejs/plugin-react": "^4.7.0",
+    "ed25519-hd-key": "^1.3.0",
+    "typescript": "^5.9.3",
+    "vite": "^6.4.1",
+    "vite-plugin-pwa": "^0.21.2",
+    "vitest": "^3.2.4"
+  }
+}
