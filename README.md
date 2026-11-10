@@ -6,9 +6,9 @@
 [![Status](https://img.shields.io/badge/status-experimental-orange)](https://github.com/abdushakurob/rpay-protocol)
 [![GitHub issues](https://img.shields.io/github/issues/abdushakurob/rpay-protocol)](https://github.com/abdushakurob/rpay-protocol/issues)
 
-[RPay](https://rpay-seven.vercel.app/) is a noncustodial transaction connectivity protocol that enables blockchain wallets to authorize and submit payments without requiring every participating device to maintain an independent internet connection.
+[RPay](https://rpay-seven.vercel.app/) is a noncustodial transaction connectivity protocol built on [Solana](https://solana.com/) that enables wallets to authorize and submit payments without requiring every participating device to maintain an independent internet connection.
 
-Built initially on [Solana](https://solana.com/), RPay separates transaction authorization from network communication. Disconnected wallets sign transactions locally, while connected peers provide access to the blockchain for submission and settlement.
+RPay separates transaction authorization from network communication. Disconnected wallets sign transactions locally, while connected peers provide access to the Solana blockchain for submission and settlement.
 
 This enables a shared connectivity model in which a single connected device can relay transactions for multiple independently controlled wallets without receiving custody of their funds.
 
@@ -22,8 +22,8 @@ RPay introduces the following capabilities and design principles:
 - **Noncustodial transaction relaying:** Submit signed transactions through connected peers without exposing private keys or delegating spending authority.
 - **Shared network connectivity:** Allow multiple wallets to access blockchain settlement through a single connected device.
 - **Transport-independent architecture:** Separate transaction delivery from the underlying local communication mechanism, beginning with QR-based exchange.
-- **Native Solana settlement:** Use Solana's existing transaction validation, execution, and finality mechanisms without introducing a separate settlement network.
-- **Extensible financial infrastructure:** Establish a foundation for compatible wallets, relay services, merchant payment systems, and future autonomous financial applications.
+- **Native Solana settlement:** Uses Solana's existing transaction validation, execution, and finality mechanisms.
+- **Extensible financial infrastructure:** Establishes a foundation for compatible wallets, relay services, merchant payment systems, and future autonomous financial applications on Solana.
 
 RPay is designed to make network connectivity an accessible infrastructure resource rather than a prerequisite for every wallet.
 
@@ -83,7 +83,7 @@ The connectivity layer provides communication between disconnected wallets and t
 
 The settlement layer validates and executes transactions according to Solana's native transaction rules.
 
-RPay does not introduce a new blockchain, consensus mechanism, or settlement ledger. It extends access to existing blockchain infrastructure.
+RPay does not introduce a new blockchain, consensus mechanism, or settlement ledger. It extends access to Solana's existing blockchain infrastructure.
 
 ## How RPay Works
 
@@ -158,11 +158,11 @@ The relay provides transaction delivery, not an alternative source of financial 
 
 ## Solana Integration
 
-RPay's first implementation uses Solana as its settlement network.
+RPay is built on Solana as its settlement network.
 
 Solana's transaction model allows transactions to be constructed and cryptographically signed separately from the device responsible for broadcasting them.
 
-RPay uses this property to enable relay-assisted transaction delivery.
+RPay leverages this property to enable relay-assisted transaction delivery.
 
 The protocol must account for Solana-specific requirements, including recent blockhash validity, transaction fees, signature verification, and confirmation states.
 
