@@ -5,6 +5,7 @@ import react from "@vitejs/plugin-react"
 import { VitePWA } from "vite-plugin-pwa"
 import { PublicKey } from "@solana/web3.js"
 import type { IncomingMessage, ServerResponse } from "node:http"
+import { dispenseUsdtDev, faucetConfigured } from "./server/usdtFaucet.mjs"
 
 const file = path.resolve("data/directory.json")
 
@@ -92,10 +93,39 @@ function directoryPlugin(): Plugin {
   }
 }
 
+function usdtFaucetPlugin(): Plugin {
+  const attach = (server: { middlewares: { use: Function } }) => {
+    server.middlewares.use("/api/usdt-faucet", (req: IncomingMessage, res: ServerResponse, next: (error?: unknown) => void) => {
+      void (async () => {
+        res.setHeader("content-type", "application/json")
+        if (req.method === "GET") {
+          res.end(JSON.stringify({ configured: faucetConfigured() }))
+          return
+        }
+        if (req.method !== "POST") {
+          res.statusCode = 405
+          res.end(JSON.stringify({ error: "method" }))
+          return
+        }
+        const body = JSON.parse(await readBody(req)) as { publicKey?: string }
+        const result = await dispenseUsdtDev(body.publicKey ?? "")
+        res.statusCode = result.status
+        res.end(JSON.stringify(result))
+      })().catch(next)
+    })
+  }
+  return {
+    name: "rpay-usdt-faucet",
+    configureServer: attach,
+    configurePreviewServer: attach,
+  }
+}
+
 export default defineConfig({
   plugins: [
     react(),
     directoryPlugin(),
+    usdtFaucetPlugin(),
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.svg"],
@@ -116,14 +146,20 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
+      "@rpay/protocol": path.resolve("packages/sdk/src/index.ts"),
       stream: "stream-browserify",
       events: "events",
+      // WDK → sodium-universal: browser uses JS sodium, not native bindings
+      "sodium-native": "sodium-javascript",
     },
+  },
+  optimizeDeps: {
+    include: ["sodium-javascript", "buffer"],
   },
   server: { host: true, port: 5173 },
   preview: { host: true, port: 4173 },
   test: {
     environment: "node",
-    include: ["src/**/*.test.ts"],
+    include: ["src/**/*.test.ts", "packages/sdk/src/**/*.test.ts"],
   },
 })
