@@ -1,20 +1,32 @@
 {
-  "name": "rpay",
+  "name": "rpay-protocol",
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "scripts": {
     "dev": "vite",
+    "dev:wallet": "vite",
+    "dev:merchant": "npm run dev -w @rpay/merchant",
     "build": "tsc --noEmit && vite build",
+    "build:merchant": "npm run build -w @rpay/merchant",
     "preview": "vite preview",
     "test": "vitest run",
     "devnet": "node scripts/devnet-session.mjs",
-    "send-devnet": "node scripts/send-devnet.mjs"
+    "send-devnet": "node scripts/send-devnet.mjs",
+    "usdt:devnet": "node scripts/create-devnet-usdt.mjs"
   },
   "dependencies": {
     "@noble/hashes": "^1.8.0",
+    "@rpay/protocol": "0.1.0-draft",
     "@scure/bip39": "^1.6.0",
+    "@solana/spl-token": "^0.4.15",
+    "@solana/transactions": "^3.0.3",
     "@solana/web3.js": "^1.98.4",
+    "@tetherto/wdk-wallet-solana": "^1.0.0-beta.21",
     "buffer": "^6.0.3",
     "events": "^3.3.0",
     "html5-qrcode": "^2.3.8",
@@ -22,6 +34,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.18.5",
+    "sodium-javascript": "^0.8.0",
     "stream-browserify": "^3.0.0"
   },
   "devDependencies": {

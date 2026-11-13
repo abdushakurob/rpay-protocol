@@ -1,0 +1,27 @@
+{
+  "name": "@rpay/protocol",
+  "version": "0.1.0-draft",
+  "description": "RPay Protocol SDK — noncustodial Solana payment connectivity",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "test": "vitest run --config ../../vite.config.ts"
+  },
+  "dependencies": {
+    "@solana/spl-token": "^0.4.15"
+  },
+  "peerDependencies": {
+    "@solana/web3.js": "^1.98.0"
+  },
+  "optionalPeerDependencies": {
+    "@tetherto/wdk-wallet-solana": ">=1.0.0-beta.0"
+  },
+  "license": "MIT"
+}
