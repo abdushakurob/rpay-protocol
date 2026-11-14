@@ -2,7 +2,8 @@ import { useEffect, useState, type ReactNode } from "react"
 import { Link, NavLink, useLocation } from "react-router-dom"
 
 const repo = "https://github.com/abdushakurob/rpay-protocol"
-const merchantHref = import.meta.env.DEV ? "http://localhost:5174" : "/merchant/app/"
+const walletHref = import.meta.env.DEV ? "/wallet" : "https://wallet.rpay.space/"
+const merchantHref = import.meta.env.DEV ? "http://localhost:5174" : "https://merchant.rpay.space/"
 
 export function SiteShell({ title, children, variant }: { title: string; children: ReactNode; variant?: "dark" }) {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -42,7 +43,7 @@ export function SiteShell({ title, children, variant }: { title: string; childre
           <div><Link to="/" className="rp-brand"><span className="rp-brand-mark" aria-hidden="true">R</span><span>RPay</span></Link><p>Payment connectivity on Solana.</p><strong>One connection. Everyone can transact.</strong></div>
           <div><span>Explore</span><Link to="/protocol">Protocol</Link><Link to="/products">Products</Link><Link to="/solutions">Solutions</Link></div>
           <div><span>Build</span><Link to="/developers">Developers</Link><Link to="/docs">Documentation</Link><a href={repo} target="_blank" rel="noreferrer">GitHub</a></div>
-          <div><span>Products</span><Link to="/wallet">RPay Wallet</Link><a href={merchantHref}>RPay Merchant</a><Link to="/docs/limitations">Network and limitations</Link></div>
+          <div><span>Products</span><a href={walletHref}>RPay Wallet</a><a href={merchantHref}>RPay Merchant</a><Link to="/docs/limitations">Network and limitations</Link></div>
         </div>
         <div className="rp-container rp-footer-bottom"><span>© {new Date().getFullYear()} RPay</span><span>Built on Solana · Devnet</span></div>
       </footer>

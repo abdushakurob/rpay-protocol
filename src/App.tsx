@@ -18,11 +18,14 @@ export function App() { return <BrowserRouter><AppRoutes /></BrowserRouter> }
 function AppRoutes() {
   const session = useSession()
   const { pathname } = useLocation()
-  const marketingRoute = ["/", "/protocol", "/products", "/solutions", "/developers"].includes(pathname) || pathname.startsWith("/docs")
+  const hostname = window.location.hostname
+  const walletHost = hostname === "wallet.rpay.space"
+  const docsHost = hostname === "docs.rpay.space"
+  const marketingRoute = (["/", "/protocol", "/products", "/solutions", "/developers"].includes(pathname) && !(pathname === "/" && walletHost)) || pathname.startsWith("/docs") || (pathname === "/" && docsHost)
   if (session.status === "loading" && !marketingRoute) return <main className="route-splash" aria-busy="true"><div className="splash-mark" aria-hidden="true"><span>R</span></div><p className="auth-kicker">RPay · Devnet</p><h1>Opening your wallet</h1><p>Checking this device securely.</p><div className="splash-loader" role="status"><i aria-hidden="true" /><span>Loading wallet</span></div></main>
   const entry = session.status === "unlocked" ? "/wallet" : session.status === "locked" ? "/unlock" : "/create"
   return <Routes>
-    <Route path="/" element={<Landing />} />
+    <Route path="/" element={walletHost ? <Wallet tab="home" /> : docsHost ? <DocsPage /> : <Landing />} />
     <Route path="/protocol" element={<ProtocolPage />} />
     <Route path="/products" element={<ProductsPage />} />
     <Route path="/solutions" element={<SolutionsPage />} />

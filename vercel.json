@@ -6,6 +6,11 @@
   "framework": "vite",
   "outputDirectory": "dist",
   "rewrites": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "merchant.rpay.space" }],
+      "destination": "/merchant/app/index.html"
+    },
     { "source": "/merchant/app", "destination": "/merchant/app/index.html" },
     { "source": "/merchant/app/", "destination": "/merchant/app/index.html" },
     { "source": "/merchant/app/(.*)", "destination": "/merchant/app/index.html" },

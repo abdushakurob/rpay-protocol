@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom"
 import { SiteShell } from "./Site"
 
-const merchantHref = import.meta.env.DEV ? "http://localhost:5174" : "/merchant/app/"
+const merchantHref = import.meta.env.DEV ? "http://localhost:5174" : "https://merchant.rpay.space/"
+const walletHref = import.meta.env.DEV ? "/wallet" : "https://wallet.rpay.space/"
 
 function Arrow() { return <span aria-hidden="true">↗</span> }
 
@@ -46,7 +47,7 @@ function ProductShowcase() {
   return <section className="rp2-products" id="products"><div className="rp-container">
     <div className="rp2-section-intro"><h2>Infrastructure you can build on. Products you can open.</h2><p>One protocol powers three distinct tools: an integration SDK, a wallet, and a merchant till.</p></div>
     <div className="rp2-product-feature rp2-product-sdk"><div className="rp2-product-copy"><h3>RPay Protocol SDK</h3><p>Bring payment connectivity into your own wallet or application. Use versioned messages, transaction helpers, relay submission, and settlement observation from one TypeScript package.</p><div className="rp2-product-tags"><span>Messages</span><span>Transactions</span><span>Settlement</span></div><Link to="/docs/sdk">Explore the SDK <Arrow /></Link></div><div className="rp2-product-visual"><CodeWindow /></div></div>
-    <div className="rp2-product-feature rp2-product-wallet"><div className="rp2-product-copy"><h3>RPay Wallet</h3><p>Hold, send, and receive SOL on Devnet. When a direct connection is unavailable, authorize a payment locally and use the QR relay flow to reach the network.</p><div className="rp2-product-tags"><span>Self-custody</span><span>Send & receive</span><span>QR relay</span></div><Link to="/wallet">Open Wallet <Arrow /></Link></div><div className="rp2-product-visual"><WalletInterface /></div></div>
+    <div className="rp2-product-feature rp2-product-wallet"><div className="rp2-product-copy"><h3>RPay Wallet</h3><p>Hold, send, and receive SOL on Devnet. When a direct connection is unavailable, authorize a payment locally and use the QR relay flow to reach the network.</p><div className="rp2-product-tags"><span>Self-custody</span><span>Send & receive</span><span>QR relay</span></div><a href={walletHref}>Open Wallet <Arrow /></a></div><div className="rp2-product-visual"><WalletInterface /></div></div>
     <div className="rp2-product-feature rp2-product-merchant"><div className="rp2-product-copy"><h3>RPay Merchant</h3><p>Create a payment request, show its QR code, and check Solana before marking a charge paid. A clear payment experience from request to verified receipt.</p><div className="rp2-product-tags"><span>Payment requests</span><span>On-chain checks</span><span>Charge history</span></div><a href={merchantHref}>Open Merchant <Arrow /></a></div><div className="rp2-product-visual"><MerchantInterface /></div></div>
   </div></section>
 }

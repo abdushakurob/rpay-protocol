@@ -507,7 +507,7 @@ export function App() {
   }
 
   if (view === "wallet-setup" || !ready) {
-    const walletUrl = import.meta.env.VITE_WALLET_URL || (import.meta.env.DEV ? "http://localhost:5173" : "/wallet")
+    const walletUrl = import.meta.env.VITE_WALLET_URL || (import.meta.env.DEV ? "http://localhost:5173" : "https://wallet.rpay.space/")
     return (
       <div className="merchant-shell">
         <section className="sheet setup-card">
