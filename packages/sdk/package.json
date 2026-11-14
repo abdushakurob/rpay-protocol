@@ -1,27 +1,59 @@
 {
   "name": "@rpay/protocol",
-  "version": "0.1.0-draft",
+  "version": "0.1.0-draft.0",
   "description": "RPay Protocol SDK — noncustodial Solana payment connectivity",
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
   "files": [
-    "src"
+    "dist",
+    "README.md"
   ],
   "scripts": {
+    "build": "tsc -p tsconfig.json --emitDeclarationOnly && esbuild src/index.ts --bundle --format=esm --platform=neutral --packages=external --outfile=dist/index.js",
+    "prepublishOnly": "npm run build",
     "test": "vitest run --config ../../vite.config.ts"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abdushakurob/rpay-protocol.git",
+    "directory": "packages/sdk"
+  },
+  "homepage": "https://github.com/abdushakurob/rpay-protocol#readme",
+  "bugs": {
+    "url": "https://github.com/abdushakurob/rpay-protocol/issues"
+  },
+  "keywords": [
+    "rpay",
+    "solana",
+    "payments",
+    "offline",
+    "relay",
+    "usdt",
+    "wdk"
+  ],
   "dependencies": {
     "@solana/spl-token": "^0.4.15"
   },
   "peerDependencies": {
     "@solana/web3.js": "^1.98.0"
   },
-  "optionalPeerDependencies": {
-    "@tetherto/wdk-wallet-solana": ">=1.0.0-beta.0"
+  "peerDependenciesMeta": {
+    "@tetherto/wdk-wallet-solana": {
+      "optional": true
+    }
   },
-  "license": "MIT"
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.12"
+  }
 }

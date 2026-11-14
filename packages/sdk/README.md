@@ -4,9 +4,13 @@ Protocol-grade TypeScript SDK for **RPay** — noncustodial Solana payment conne
 
 Separates **authorization** (payer signs locally) from **connectivity** (relay submits) and **settlement** (Solana validates). Aligns with `docs/02-protocol-specification.md` and `docs/03-transaction-lifecycle.md`.
 
-## Install (workspace)
+## Install
 
-This package lives at `packages/sdk` in the RPay Protocol monorepo. The wallet app resolves it as `@rpay/protocol`.
+```bash
+npm install @rpay/protocol @solana/web3.js
+```
+
+In this monorepo the wallet still resolves the workspace package (Vite aliases `packages/sdk/src` in development).
 
 ```ts
 import {

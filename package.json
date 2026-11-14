@@ -4,15 +4,14 @@
   "version": "0.1.0",
   "type": "module",
   "workspaces": [
-    "packages/*",
-    "apps/*"
+    "packages/*"
   ],
   "scripts": {
     "dev": "vite",
     "dev:wallet": "vite",
-    "dev:merchant": "npm run dev -w @rpay/merchant",
+    "dev:merchant": "npm run dev --prefix apps/merchant",
     "build": "tsc --noEmit && vite build",
-    "build:merchant": "npm run build -w @rpay/merchant",
+    "build:merchant": "npm run build --prefix apps/merchant",
     "preview": "vite preview",
     "test": "vitest run",
     "devnet": "node scripts/devnet-session.mjs",
@@ -21,7 +20,7 @@
   },
   "dependencies": {
     "@noble/hashes": "^1.8.0",
-    "@rpay/protocol": "0.1.0-draft",
+    "@rpay/protocol": "0.1.0-draft.0",
     "@scure/bip39": "^1.6.0",
     "@solana/spl-token": "^0.4.15",
     "@solana/transactions": "^3.0.3",
