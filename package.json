@@ -24,6 +24,7 @@
     "@noble/hashes": "^1.8.0",
     "@rpay/protocol": "0.1.0-draft.0",
     "@scure/bip39": "^1.6.0",
+    "@solana/kit": "^4.0.0",
     "@solana/spl-token": "^0.4.15",
     "@solana/transactions": "^3.0.3",
     "@solana/web3.js": "^1.98.4",
