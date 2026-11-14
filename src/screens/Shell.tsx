@@ -153,6 +153,7 @@ export function Shell({ tab, onTab, onSend, onReceive, onRelay, relay, activity,
               </button>
             </header>
             <section className="wallet-balance-card">
+              <div className="wallet-card-heading"><span>YOUR ASSETS</span><span>RPAY WALLET / SOLANA DEVNET</span></div>
               <div className={`wallet-balances${usdt ? " wallet-balances--dual" : ""}`}>
                 <div className="wallet-balance-tile">
                   <div className="wallet-token">

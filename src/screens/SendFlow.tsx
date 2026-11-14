@@ -331,7 +331,7 @@ export function SendFlow({ onClose }: { onClose: () => void }) {
       : `${amount || "0"} ${assetLabel}`
 
   return (
-    <main className="wallet-shell wallet-shell--solo">
+    <div className="wallet-shell wallet-shell--solo">
       <div className="wallet-main wallet-main--flow">
       <section className="wallet-page wallet-page--flow">
         <div className="topbar">
@@ -348,7 +348,7 @@ export function SendFlow({ onClose }: { onClose: () => void }) {
         </div>
         {step === "amount" ? (
           <>
-            <div className="sheet">
+            <div className="sheet send-amount">
               {usdtEnabled() ? (
                 <div className="asset-toggle" role="group" aria-label="Asset">
                   <button type="button" className={asset === "sol" ? "active" : ""} onClick={() => setAsset("sol")}>SOL</button>
@@ -469,6 +469,6 @@ export function SendFlow({ onClose }: { onClose: () => void }) {
         ) : null}
       </section>
       </div>
-    </main>
+    </div>
   )
 }

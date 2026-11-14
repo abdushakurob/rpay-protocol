@@ -132,8 +132,8 @@ export default defineConfig({
       manifest: {
         name: "RPay",
         short_name: "RPay",
-        theme_color: "#E07A56",
-        background_color: "#E07A56",
+        theme_color: "#29C576",
+        background_color: "#F7F9F5",
         display: "standalone",
         start_url: "/",
         icons: [{ src: "favicon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" }],
@@ -141,6 +141,7 @@ export default defineConfig({
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,ico}"],
         navigateFallback: "index.html",
+        navigateFallbackDenylist: [/^\/merchant\/app(?:\/|$)/],
       },
     }),
   ],

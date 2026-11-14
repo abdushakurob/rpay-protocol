@@ -3,7 +3,6 @@
 **The connectivity layer for decentralized payments.**
 
 [![Solana](https://img.shields.io/badge/Solana-Devnet-9945FF?logo=solana&logoColor=white)](https://solana.com/)
-[![Status](https://img.shields.io/badge/status-experimental-orange)](https://github.com/abdushakurob/rpay-protocol)
 [![GitHub issues](https://img.shields.io/github/issues/abdushakurob/rpay-protocol)](https://github.com/abdushakurob/rpay-protocol/issues)
 
 [RPay](https://rpay-seven.vercel.app/) is a noncustodial transaction connectivity protocol built on [Solana](https://solana.com/) that enables wallets to authorize and submit payments without requiring every participating device to maintain an independent internet connection.
@@ -188,9 +187,9 @@ Security reviews and broader interoperability testing remain necessary before pr
 
 See [SECURITY.md](SECURITY.md) for security reporting and additional considerations.
 
-## Reference Implementation
+## Products and implementation
 
-The RPay repository contains an experimental reference implementation of offline transaction authorization and relay-assisted submission on Solana Devnet.
+The RPay repository contains the Protocol SDK, Wallet, and Merchant. The current applications run on Solana Devnet; protocol version `0.1-draft` and its technical limits are documented below.
 
 ### Protocol SDK
 
@@ -199,11 +198,11 @@ Reusable protocol logic lives in [`packages/sdk`](packages/sdk) as `@rpay/protoc
 - Versioned envelopes (`network_context`, `signed_transaction`, `payment_request`, …)
 - Transaction lifecycle helpers and error codes
 - SOL transfer construction, verification, and relay submission
-- Legacy compact QR codecs used by the reference wallet
+- Compact QR codecs used by RPay Wallet
 
 See [`packages/sdk/README.md`](packages/sdk/README.md) for integration examples.
 
-### Reference wallet
+### RPay Wallet
 
 The application uses:
 
@@ -214,7 +213,7 @@ The application uses:
 - **Encrypted local storage** for wallet credential persistence.
 - **Progressive Web App capabilities** for browser-based deployment.
 
-The reference wallet UI is not a normative requirement for future protocol clients.
+RPay Wallet is one application built with the protocol; its UI is not a normative requirement for other clients.
 
 Independent implementations may use different languages, frameworks, and transport mechanisms as the protocol specification evolves.
 
@@ -233,7 +232,7 @@ Install dependencies:
 npm install
 ```
 
-Start the reference wallet:
+Start the website and Wallet:
 
 ```bash
 npm run dev
@@ -244,6 +243,15 @@ Start RPay Merchant (separate app on port 5174):
 ```bash
 npm run dev:merchant
 ```
+
+The website includes protocol, products, solutions, developer, and documentation pages. Its documentation renders the Markdown files in `docs/` and the SDK guide. For a local production build, install Merchant dependencies and build both apps into `dist/`:
+
+```bash
+npm ci --prefix apps/merchant --legacy-peer-deps
+npm run build
+```
+
+The build serves Merchant at `/merchant/app/`. On Vercel, the install command installs both dependency sets before the build.
 
 The live wallet is available at [rpay-seven.vercel.app](https://rpay-seven.vercel.app/).
 

@@ -12,7 +12,7 @@ export function Receive({ onClose }: { onClose: () => void }) {
   const code = encodeIdentity(session.alias, session.publicKey)
 
   return (
-    <main className="wallet-shell wallet-shell--solo">
+    <div className="wallet-shell wallet-shell--solo">
       <div className="wallet-main wallet-main--flow">
       <section className="wallet-page wallet-page--flow">
         <div className="topbar">
@@ -38,6 +38,6 @@ export function Receive({ onClose }: { onClose: () => void }) {
         </div>
       </section>
       </div>
-    </main>
+    </div>
   )
 }
