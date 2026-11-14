@@ -5,15 +5,15 @@
   "installCommand": "npm install --legacy-peer-deps && npm install --prefix apps/merchant --legacy-peer-deps",
   "framework": "vite",
   "outputDirectory": "dist",
-  "rewrites": [
+  "routes": [
     {
-      "source": "/",
+      "src": "^/$",
       "has": [{ "type": "host", "value": "merchant.rpay.space" }],
-      "destination": "/merchant/app/index.html"
+      "dest": "/merchant/app/index.html"
     },
-    { "source": "/merchant/app", "destination": "/merchant/app/index.html" },
-    { "source": "/merchant/app/", "destination": "/merchant/app/index.html" },
-    { "source": "/merchant/app/(.*)", "destination": "/merchant/app/index.html" },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "handle": "filesystem" },
+    { "src": "^/merchant/app/?$", "dest": "/merchant/app/index.html" },
+    { "src": "^/merchant/app/.*$", "dest": "/merchant/app/index.html" },
+    { "src": "^/((?!api/).*)$", "dest": "/index.html" }
   ]
 }
