@@ -1,5 +1,6 @@
 body{background:#edf5ed}
 .merchant-shell{max-width:1120px}
+.merchant-shell--dash{max-width:1120px}
 .merchant-shell--welcome{max-width:none;padding:0;display:grid;align-items:stretch}
 .merchant-welcome-layout{display:grid;grid-template-columns:1fr 1fr;min-height:100dvh}
 .merchant-welcome-copy{padding:42px clamp(35px,6vw,100px) 38px;display:flex;flex-direction:column;align-items:flex-start;background:#f8fbf7}

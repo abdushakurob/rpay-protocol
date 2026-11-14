@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { QrImage } from "./components/QrImage"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   hasAccount,
   isLoggedIn,
@@ -13,10 +12,7 @@ import {
 import {
   configuredUsdt,
   createPaymentRequestForAsset,
-  explorerTx,
   findMatchingIncomingTransfer,
-  formatRequestAmount,
-  formatSol,
   isSettledState,
   isValidAddress,
   labelForState,
@@ -25,21 +21,24 @@ import {
   verifySignatureState,
   type MerchantAsset,
 } from "./lib/client"
-import { loadRequests, upsertRequest, type MerchantRequestRecord } from "./lib/store"
+import {
+  cancelRequest,
+  clearRequests,
+  isPaidStatus,
+  loadRequests,
+  upsertRequest,
+  type MerchantRequestRecord,
+  type VolumeRange,
+} from "./lib/store"
+import { Charge } from "./views/Charge"
+import { Overview } from "./views/Overview"
+import { RequestDetail } from "./views/RequestDetail"
+import { Settings } from "./views/Settings"
+import { Transactions } from "./views/Transactions"
 
 type Gate = "welcome" | "signup" | "login"
-type View = "wallet-setup" | "home" | "charge" | "request" | "settings"
-
-function shortAddr(value: string) {
-  return `${value.slice(0, 4)}…${value.slice(-4)}`
-}
-
-function statusLabel(status: MerchantRequestRecord["status"]) {
-  if (status === "pending") return "Waiting"
-  if (status === "confirmed" || status === "finalized") return "Paid"
-  if (status === "failed") return "Failed"
-  return labelForState(status)
-}
+type Tab = "overview" | "transactions" | "settings"
+type View = "wallet-setup" | Tab | "charge" | "request"
 
 function authErrorMessage(code: string) {
   if (code === "shop-name") return "Enter a shop name (at least 2 characters)."
@@ -58,15 +57,17 @@ export function App() {
   )
   const [gate, setGate] = useState<Gate>(() => (hasAccount() ? "login" : "welcome"))
   const [view, setView] = useState<View>(() => {
-    if (!isLoggedIn()) return "home"
+    if (!isLoggedIn()) return "overview"
     const current = loadProfile()
-    return current?.payoutAddress ? "home" : "wallet-setup"
+    return current?.payoutAddress ? "overview" : "wallet-setup"
   })
   const [requests, setRequests] = useState<MerchantRequestRecord[]>(() => loadRequests())
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [error, setError] = useState("")
   const [busy, setBusy] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [networkHint, setNetworkHint] = useState<string | null>(null)
+  const [range, setRange] = useState<VolumeRange>(7)
 
   const [shopName, setShopName] = useState("")
   const [password, setPassword] = useState("")
@@ -81,11 +82,12 @@ export function App() {
     usdt: null | { uiAmount: number; symbol: string; labeledTestToken: boolean }
   } | null>(null)
 
+  const celebrated = useRef<Set<string>>(new Set())
+
   const selected = useMemo(
     () => requests.find((item) => item.id === selectedId) ?? null,
     [requests, selectedId],
   )
-  const paid = !!selected && selected.status !== "pending" && isSettledState(selected.status)
   const loggedIn = Boolean(profile)
   const ready = Boolean(profile?.payoutAddress)
 
@@ -97,8 +99,9 @@ export function App() {
     }
     try {
       setBalances(await readMerchantBalances(address))
+      setNetworkHint(null)
     } catch {
-      // Keep last known balances on RPC blips.
+      setNetworkHint("Couldn’t refresh balances — check your connection.")
     }
   }, [])
 
@@ -116,7 +119,7 @@ export function App() {
   }, [refreshBalances, ready, profile?.payoutAddress])
 
   useEffect(() => {
-    if (!selected || paid) return
+    if (!selected || isPaidStatus(selected.status)) return
     let cancelled = false
     async function poll() {
       if (!selected) return
@@ -126,16 +129,23 @@ export function App() {
           createdAt: selected.createdAt,
         })
         if (cancelled || !match) return
-        setRequests(
-          upsertRequest({
-            ...selected,
-            signature: match.signature,
-            status: match.state,
-            note: match.settled
-              ? "Payment received on Solana Devnet"
-              : `Seen on-chain as ${labelForState(match.state)}`,
-          }),
-        )
+        const next = {
+          ...selected,
+          signature: match.signature,
+          status: match.state,
+          note: match.settled
+            ? "Payment received on Solana Devnet"
+            : `Seen on-chain as ${labelForState(match.state)}`,
+        }
+        setRequests(upsertRequest(next))
+        if (match.settled && !celebrated.current.has(selected.id)) {
+          celebrated.current.add(selected.id)
+          try {
+            navigator.vibrate?.(40)
+          } catch {
+            // ignore
+          }
+        }
       } catch {
         // Keep waiting.
       }
@@ -146,7 +156,7 @@ export function App() {
       cancelled = true
       window.clearInterval(timer)
     }
-  }, [selected, paid])
+  }, [selected])
 
   async function handleSignUp() {
     setError("")
@@ -175,7 +185,7 @@ export function App() {
       const next = await logIn(shopName, password)
       setProfile(next)
       setPassword("")
-      setView(next.payoutAddress ? "home" : "wallet-setup")
+      setView(next.payoutAddress ? "overview" : "wallet-setup")
       if (next.payoutAddress) setPayoutAddress(next.payoutAddress)
     } catch (err) {
       setError(authErrorMessage(err instanceof Error ? err.message : ""))
@@ -188,7 +198,7 @@ export function App() {
     logOut()
     setProfile(null)
     setGate(hasAccount() ? "login" : "welcome")
-    setView("home")
+    setView("overview")
     setError("")
   }
 
@@ -201,7 +211,7 @@ export function App() {
     }
     savePayoutAddress(address)
     setProfile(loadProfile())
-    setView("home")
+    setView("overview")
   }
 
   function createCharge() {
@@ -258,6 +268,13 @@ export function App() {
             : `Seen on-chain as ${labelForState(match.state)}`,
         }),
       )
+      if (match.settled) {
+        try {
+          navigator.vibrate?.(40)
+        } catch {
+          // ignore
+        }
+      }
     } catch {
       setError("Couldn’t reach Devnet. Try again.")
     } finally {
@@ -287,11 +304,24 @@ export function App() {
         }),
       )
       setManualSignature("")
+      if (isSettledState(state)) {
+        try {
+          navigator.vibrate?.(40)
+        } catch {
+          // ignore
+        }
+      }
     } catch {
       setError("That signature couldn’t be verified on Devnet.")
     } finally {
       setBusy(false)
     }
+  }
+
+  function openRequest(id: string) {
+    setSelectedId(id)
+    setError("")
+    setView("request")
   }
 
   // ——— Auth gates ———
@@ -301,18 +331,78 @@ export function App() {
         <div className="merchant-shell merchant-shell--welcome">
           <div className="merchant-welcome-layout">
             <section className="merchant-welcome-copy">
-              <div className="merchant-welcome-brand"><span>R</span><strong>RPay Merchant</strong><small>Solana Devnet</small></div>
+              <div className="merchant-welcome-brand">
+                <span>R</span>
+                <strong>RPay Merchant</strong>
+                <small>Solana Devnet</small>
+              </div>
               <p className="merchant-welcome-kicker">PAYMENTS / CONNECTED</p>
               <h1>Get paid with confidence.</h1>
-              <p>Create a payment request, show its QR code, and confirm the result on Solana. Your shop stays in control from the first charge to the final check.</p>
+              <p>
+                Create a payment request, show its QR code, and confirm the result on Solana. Your shop stays in control
+                from the first charge to the final check.
+              </p>
               <div className="merchant-welcome-actions">
-                <button type="button" className="primary" onClick={() => { setError(""); setGate("signup") }}>Create your shop <span aria-hidden="true">↗</span></button>
-                {hasAccount() ? <button type="button" className="ghost" onClick={() => { setError(""); setGate("login") }}>Log in</button> : null}
+                <button
+                  type="button"
+                  className="primary"
+                  onClick={() => {
+                    setError("")
+                    setGate("signup")
+                  }}
+                >
+                  Create your shop <span aria-hidden="true">↗</span>
+                </button>
+                {hasAccount() ? (
+                  <button
+                    type="button"
+                    className="ghost"
+                    onClick={() => {
+                      setError("")
+                      setGate("login")
+                    }}
+                  >
+                    Log in
+                  </button>
+                ) : null}
               </div>
-              <div className="merchant-welcome-foot"><span>PAYMENT REQUESTS</span><span>ON-CHAIN VERIFICATION</span></div>
+              <div className="merchant-welcome-foot">
+                <span>PAYMENT REQUESTS</span>
+                <span>ON-CHAIN VERIFICATION</span>
+              </div>
             </section>
             <aside className="merchant-welcome-visual" aria-label="Merchant payment interface preview">
-              <div className="merchant-preview-card"><div className="merchant-preview-head"><span className="merchant-preview-mark">R</span><strong>New payment</strong><small>● Devnet</small></div><div className="merchant-preview-content"><span>PAYMENT REQUEST</span><strong>0.01 <small>SOL</small></strong><p>Show this code to your customer</p><div className="merchant-preview-qr" aria-hidden="true"><i /><i /><i /><i /><i /><i /><i /><i /><i /></div><div className="merchant-preview-pending"><i /> Waiting for payment</div></div><div className="merchant-preview-button">Check Solana for payment <span>↗</span></div></div>
+              <div className="merchant-preview-card">
+                <div className="merchant-preview-head">
+                  <span className="merchant-preview-mark">R</span>
+                  <strong>New payment</strong>
+                  <small>● Devnet</small>
+                </div>
+                <div className="merchant-preview-content">
+                  <span>PAYMENT REQUEST</span>
+                  <strong>
+                    0.01 <small>SOL</small>
+                  </strong>
+                  <p>Show this code to your customer</p>
+                  <div className="merchant-preview-qr" aria-hidden="true">
+                    <i />
+                    <i />
+                    <i />
+                    <i />
+                    <i />
+                    <i />
+                    <i />
+                    <i />
+                    <i />
+                  </div>
+                  <div className="merchant-preview-pending">
+                    <i /> Waiting for payment
+                  </div>
+                </div>
+                <div className="merchant-preview-button">
+                  Check Solana for payment <span>↗</span>
+                </div>
+              </div>
             </aside>
           </div>
         </div>
@@ -416,7 +506,6 @@ export function App() {
     )
   }
 
-  // ——— Wallet setup (after login) ———
   if (view === "wallet-setup" || !ready) {
     const walletUrl = import.meta.env.VITE_WALLET_URL || (import.meta.env.DEV ? "http://localhost:5173" : "/wallet")
     return (
@@ -454,289 +543,115 @@ export function App() {
     )
   }
 
-  if (view === "settings" && profile) {
-    return (
-      <div className="merchant-shell">
-        <section className="flow-page">
-          <div className="topbar">
-            <button className="back" type="button" aria-label="Back" onClick={() => setView("home")}>
-              ←
-            </button>
-            <h1>Settings</h1>
-            <span />
-          </div>
-          <div className="sheet">
-            <p className="flow-kicker">Shop</p>
-            <h2>{profile.shopName}</h2>
-            <p className="hint">Payout wallet: {shortAddr(profile.payoutAddress!)}</p>
-            <button
-              type="button"
-              className="primary"
-              onClick={() => {
-                setPayoutAddress(profile.payoutAddress ?? "")
-                setView("wallet-setup")
-              }}
-            >
-              Change payout wallet
-            </button>
-            <button type="button" className="ghost" onClick={handleLogOut}>
-              Log out
-            </button>
-          </div>
-        </section>
-      </div>
-    )
-  }
-
-  if (view === "charge" && profile?.payoutAddress) {
-    return (
-      <div className="merchant-shell">
-        <section className="flow-page">
-          <div className="topbar">
-            <button className="back" type="button" aria-label="Back" onClick={() => setView("home")}>
-              ←
-            </button>
-            <h1>Charge</h1>
-            <span />
-          </div>
-          <div className="sheet">
-            <p className="flow-kicker">New sale</p>
-            <h2>How much are they paying?</h2>
-            <div className="asset-toggle" role="group" aria-label="Asset">
-              <button
-                type="button"
-                className={asset === "sol" ? "active" : ""}
-                onClick={() => {
-                  setAsset("sol")
-                  setAmount("0.01")
-                }}
-              >
-                SOL
-              </button>
-              <button
-                type="button"
-                className={asset === "usdt" ? "active" : ""}
-                disabled={!usdt}
-                onClick={() => {
-                  setAsset("usdt")
-                  setAmount("1")
-                }}
-              >
-                {usdt?.labeledTestToken ? "USDT-DEV" : "USDT"}
-              </button>
-            </div>
-            <label>
-              Amount
-              <input
-                className="amount-input"
-                value={amount}
-                onChange={(event) => setAmount(event.target.value)}
-                inputMode="decimal"
-              />
-            </label>
-            <label>
-              Note (optional)
-              <input
-                value={memo}
-                onChange={(event) => setMemo(event.target.value)}
-                placeholder="Order #42 / Table 3"
-              />
-            </label>
-            <p className="hint">Money goes to {shortAddr(profile.payoutAddress)}</p>
-            {usdt?.labeledTestToken && asset === "usdt" ? (
-              <p className="hint">Devnet test token — not official Tether USDT.</p>
-            ) : null}
-            {error ? <p className="error">{error}</p> : null}
-            <button type="button" className="primary" onClick={createCharge}>
-              Show payment QR
-            </button>
-          </div>
-        </section>
-      </div>
-    )
-  }
-
-  if (view === "request" && selected) {
-    return (
-      <div className="merchant-shell">
-        <section className="flow-page">
-          <div className="topbar">
-            <button className="back" type="button" aria-label="Back" onClick={() => setView("home")}>
-              ←
-            </button>
-            <h1>Payment</h1>
-            <span />
-          </div>
-          <div className="sheet">
-            <p className="flow-kicker">{paid ? "Settled" : "Show to customer"}</p>
-            <h2>{formatRequestAmount(selected.request)}</h2>
-            {selected.request.memo ? <p className="hint">{selected.request.memo}</p> : null}
-            {paid ? (
-              <div className="paid-banner">Paid — funds are on your payout wallet.</div>
-            ) : (
-              <div className="waiting-pulse">
-                <i /> Waiting for customer to pay
-              </div>
-            )}
-            <div className="qr-stage">
-              <QrImage text={selected.payload} />
-              <p className="muted" style={{ color: "#5b6b64", textAlign: "center", margin: 0 }}>
-                Customer: RPay → Send → Scan merchant request
-              </p>
-            </div>
-            <button type="button" className="primary" disabled={busy || paid} onClick={() => void checkPayment()}>
-              {busy ? "Checking Solana…" : paid ? "Payment confirmed" : "Check for payment"}
-            </button>
-            <button
-              type="button"
-              className="ghost"
-              onClick={() => {
-                void navigator.clipboard.writeText(selected.payload).then(() => {
-                  setCopied(true)
-                  window.setTimeout(() => setCopied(false), 1600)
-                })
-              }}
-            >
-              {copied ? "Request copied" : "Copy request code"}
-            </button>
-            {!paid ? (
-              <>
-                <label>
-                  Or paste their transaction signature
-                  <input
-                    value={manualSignature}
-                    onChange={(event) => setManualSignature(event.target.value)}
-                    placeholder="Base58 signature"
-                    spellCheck={false}
-                  />
-                </label>
-                <button type="button" className="ghost" disabled={busy} onClick={() => void verifyManual()}>
-                  Verify signature
-                </button>
-              </>
-            ) : null}
-            {error ? <p className="error">{error}</p> : null}
-            {selected.note ? <p className="hint">{selected.note}</p> : null}
-            {selected.signature ? (
-              <a className="explorer-link" href={explorerTx(selected.signature)} target="_blank" rel="noreferrer">
-                View on Solana Explorer
-              </a>
-            ) : null}
-            <button type="button" className="ghost" onClick={() => setView("charge")}>
-              New charge
-            </button>
-          </div>
-        </section>
-      </div>
-    )
-  }
-
-  const shop = profile!.shopName
-  const initial = shop.slice(0, 1).toUpperCase()
-
   return (
-    <div className="merchant-shell">
-      <header className="merchant-head">
-        <div className="merchant-identity">
-          <span className="identity-avatar">{initial}</span>
-          <div>
-            <p className="eyebrow">RPay Merchant</p>
-            <strong>{shop}</strong>
-            <span className="online-state">
-              <i /> Devnet
-            </span>
-          </div>
-        </div>
-        <button className="text-btn" type="button" onClick={() => setView("settings")}>
-          Settings
-        </button>
-      </header>
+    <div className="merchant-shell merchant-shell--dash">
+      {view === "overview" && profile ? (
+        <Overview
+          profile={profile}
+          requests={requests}
+          balances={balances}
+          networkHint={networkHint}
+          range={range}
+          usdtConfigured={Boolean(usdt)}
+          onRangeChange={setRange}
+          onCharge={() => {
+            setError("")
+            setView("charge")
+          }}
+          onOpenRequest={openRequest}
+          onNavigate={(tab) => {
+            refresh()
+            setView(tab)
+          }}
+        />
+      ) : null}
 
-      <section className="merchant-balance-card">
-        <div className={`wallet-balances${usdt ? " wallet-balances--dual" : ""}`}>
-          <div className="wallet-balance-tile">
-            <div className="wallet-token">
-              <span className="sol-mark" aria-hidden="true">
-                S
-              </span>
-              <span>
-                SOL <small>Devnet</small>
-              </span>
-            </div>
-            <p className="balance-display">
-              {balances ? formatSol(balances.sol) : "—"} <small>SOL</small>
-            </p>
-          </div>
-          {usdt ? (
-            <div className="wallet-balance-tile">
-              <div className="wallet-token">
-                <span className="token-mark" aria-hidden="true">
-                  ₮
-                </span>
-                <span>
-                  {usdt.symbol} <small>Devnet</small>
-                </span>
-              </div>
-              <p className="balance-display">
-                {balances?.usdt
-                  ? balances.usdt.uiAmount.toLocaleString(undefined, { maximumFractionDigits: 6 })
-                  : "0"}{" "}
-                <small>{usdt.symbol}</small>
-              </p>
-            </div>
-          ) : null}
-        </div>
-        <p className="receive-meta">Payments land at {shortAddr(profile!.payoutAddress!)}</p>
-        <button className="charge-btn" type="button" onClick={() => setView("charge")}>
-          Charge customer <span>→</span>
-        </button>
-      </section>
+      {view === "transactions" ? (
+        <Transactions
+          requests={requests}
+          onOpenRequest={openRequest}
+          onNavigate={(tab) => {
+            refresh()
+            setView(tab)
+          }}
+        />
+      ) : null}
 
-      <section className="panel">
-        <div className="panel-title">
-          <h2>Recent charges</h2>
-          <button className="text-btn" type="button" onClick={refresh}>
-            Refresh
-          </button>
-        </div>
-        {requests.length === 0 ? (
-          <div className="empty-state">
-            <strong>No charges yet</strong>
-            <p className="muted">Tap Charge customer, show the QR, then confirm when Solana settles.</p>
-          </div>
-        ) : (
-          <ul className="request-list">
-            {requests.map((item) => (
-              <li key={item.id}>
-                <button
-                  type="button"
-                  className="request-row"
-                  onClick={() => {
-                    setSelectedId(item.id)
-                    setView("request")
-                  }}
-                >
-                  <span>
-                    <strong>{formatRequestAmount(item.request)}</strong>
-                    <small>
-                      {item.request.memo ? `${item.request.memo} · ` : ""}
-                      {new Date(item.createdAt).toLocaleString(undefined, {
-                        month: "short",
-                        day: "numeric",
-                        hour: "numeric",
-                        minute: "2-digit",
-                      })}
-                    </small>
-                  </span>
-                  <em className="status-pill" data-state={item.status}>
-                    {statusLabel(item.status)}
-                  </em>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      {view === "settings" && profile ? (
+        <Settings
+          profile={profile}
+          chargeCount={requests.length}
+          onChangeWallet={() => {
+            setPayoutAddress(profile.payoutAddress ?? "")
+            setView("wallet-setup")
+          }}
+          onClearHistory={() => {
+            setRequests(clearRequests())
+            setSelectedId(null)
+          }}
+          onLogOut={handleLogOut}
+          onNavigate={(tab) => setView(tab)}
+          onCharge={() => {
+            setError("")
+            setView("charge")
+          }}
+        />
+      ) : null}
+
+      {view === "charge" && profile?.payoutAddress ? (
+        <Charge
+          payoutAddress={profile.payoutAddress}
+          asset={asset}
+          amount={amount}
+          memo={memo}
+          usdt={usdt}
+          error={error}
+          onAsset={setAsset}
+          onAmount={setAmount}
+          onMemo={setMemo}
+          onBack={() => {
+            setError("")
+            setView("overview")
+          }}
+          onSubmit={createCharge}
+        />
+      ) : null}
+
+      {view === "request" && selected ? (
+        <RequestDetail
+          selected={selected}
+          busy={busy}
+          error={error}
+          copied={copied}
+          manualSignature={manualSignature}
+          onManualSignature={setManualSignature}
+          onBack={() => {
+            setError("")
+            setView("overview")
+          }}
+          onCheck={() => void checkPayment()}
+          onVerifyManual={() => void verifyManual()}
+          onCopy={() => {
+            void navigator.clipboard.writeText(selected.payload).then(() => {
+              setCopied(true)
+              window.setTimeout(() => setCopied(false), 1600)
+            })
+          }}
+          onCancel={() => {
+            setRequests(cancelRequest(selected.id))
+            setError("")
+            setView("overview")
+          }}
+          onNewCharge={() => {
+            setError("")
+            setView("charge")
+          }}
+          onDone={() => {
+            setError("")
+            setView("overview")
+          }}
+        />
+      ) : null}
     </div>
   )
 }
