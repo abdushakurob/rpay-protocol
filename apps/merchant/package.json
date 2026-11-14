@@ -9,8 +9,9 @@
     "preview": "vite preview --port 4174"
   },
   "dependencies": {
-    "@rpay/protocol": "0.1.0-draft",
+    "@rpay/protocol": "0.1.0-draft.0",
     "@solana/web3.js": "^1.98.4",
+    "buffer": "^6.0.3",
     "qrcode": "^1.5.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"

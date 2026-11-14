@@ -10,7 +10,7 @@ export function QrImage({ text }: { text: string }) {
         QR.toDataURL(text, {
           margin: 1,
           width: 280,
-          color: { dark: "#0B1F17", light: "#F3F7F4" },
+          color: { dark: "#10211c", light: "#ffffff" },
           errorCorrectionLevel: "M",
         }),
       )

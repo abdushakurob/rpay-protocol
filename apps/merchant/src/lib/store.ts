@@ -1,8 +1,9 @@
 import type { PaymentRequestMessage, TransactionState } from "@rpay/protocol"
+import { loadProfile, savePayoutAddress, type MerchantProfile } from "./auth"
 
-const SETTINGS_KEY = "rpay.merchant.settings"
 const REQUESTS_KEY = "rpay.merchant.requests"
 
+/** @deprecated use MerchantProfile — kept for type clarity in UI */
 export type MerchantSettings = {
   recipient: string
   displayName: string
@@ -28,14 +29,19 @@ function readJson<T>(key: string, fallback: T): T {
   }
 }
 
+export function profileToSettings(profile: MerchantProfile): MerchantSettings | null {
+  if (!profile.payoutAddress) return null
+  return { displayName: profile.shopName, recipient: profile.payoutAddress }
+}
+
 export function loadSettings(): MerchantSettings | null {
-  const value = readJson<MerchantSettings | null>(SETTINGS_KEY, null)
-  if (!value?.recipient) return null
-  return value
+  const profile = loadProfile()
+  if (!profile) return null
+  return profileToSettings(profile)
 }
 
 export function saveSettings(settings: MerchantSettings) {
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
+  savePayoutAddress(settings.recipient)
 }
 
 export function loadRequests(): MerchantRequestRecord[] {
