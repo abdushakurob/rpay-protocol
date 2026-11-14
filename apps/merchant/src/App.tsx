@@ -298,36 +298,23 @@ export function App() {
   if (!loggedIn) {
     if (gate === "welcome") {
       return (
-        <div className="merchant-shell">
-          <section className="sheet setup-card">
-            <p className="flow-kicker">RPay Merchant</p>
-            <h2>Your shop till on Solana.</h2>
-            <p className="muted">
-              Create a shop account on this phone, then connect the wallet where customer payments should land.
-            </p>
-            <button
-              type="button"
-              className="primary"
-              onClick={() => {
-                setError("")
-                setGate("signup")
-              }}
-            >
-              Create shop
-            </button>
-            {hasAccount() ? (
-              <button
-                type="button"
-                className="ghost"
-                onClick={() => {
-                  setError("")
-                  setGate("login")
-                }}
-              >
-                Log in
-              </button>
-            ) : null}
-          </section>
+        <div className="merchant-shell merchant-shell--welcome">
+          <div className="merchant-welcome-layout">
+            <section className="merchant-welcome-copy">
+              <div className="merchant-welcome-brand"><span>R</span><strong>RPay Merchant</strong><small>Solana Devnet</small></div>
+              <p className="merchant-welcome-kicker">PAYMENTS / CONNECTED</p>
+              <h1>Get paid with confidence.</h1>
+              <p>Create a payment request, show its QR code, and confirm the result on Solana. Your shop stays in control from the first charge to the final check.</p>
+              <div className="merchant-welcome-actions">
+                <button type="button" className="primary" onClick={() => { setError(""); setGate("signup") }}>Create your shop <span aria-hidden="true">↗</span></button>
+                {hasAccount() ? <button type="button" className="ghost" onClick={() => { setError(""); setGate("login") }}>Log in</button> : null}
+              </div>
+              <div className="merchant-welcome-foot"><span>PAYMENT REQUESTS</span><span>ON-CHAIN VERIFICATION</span></div>
+            </section>
+            <aside className="merchant-welcome-visual" aria-label="Merchant payment interface preview">
+              <div className="merchant-preview-card"><div className="merchant-preview-head"><span className="merchant-preview-mark">R</span><strong>New payment</strong><small>● Devnet</small></div><div className="merchant-preview-content"><span>PAYMENT REQUEST</span><strong>0.01 <small>SOL</small></strong><p>Show this code to your customer</p><div className="merchant-preview-qr" aria-hidden="true"><i /><i /><i /><i /><i /><i /><i /><i /><i /></div><div className="merchant-preview-pending"><i /> Waiting for payment</div></div><div className="merchant-preview-button">Check Solana for payment <span>↗</span></div></div>
+            </aside>
+          </div>
         </div>
       )
     }
@@ -431,7 +418,7 @@ export function App() {
 
   // ——— Wallet setup (after login) ———
   if (view === "wallet-setup" || !ready) {
-    const walletUrl = import.meta.env.VITE_WALLET_URL || "http://localhost:5173"
+    const walletUrl = import.meta.env.VITE_WALLET_URL || (import.meta.env.DEV ? "http://localhost:5173" : "/wallet")
     return (
       <div className="merchant-shell">
         <section className="sheet setup-card">
