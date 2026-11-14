@@ -6,7 +6,7 @@ RPay currently targets Solana Devnet and uses the `@solana/web3.js` ecosystem. T
 
 ## Recent blockhashes
 
-Solana transactions normally include a recent blockhash. The connected participant can obtain it using `getLatestBlockhash`, which returns a `blockhash` and `lastValidBlockHeight`. The payer must sign a transaction message that includes the selected blockhash. The transaction must be processed before its validity expires.
+Solana transactions normally include a recent blockhash. The connected participant can obtain it using `getLatestBlockhash`, which returns a `blockhash` and `lastValidBlockHeight`. The payer must sign a transaction message that includes the selected blockhash. The transaction must be processed before its validity expires. RPay also publishes wall-clock `expiresAt` / `fetchedAt` on `network_context` (derived from remaining slots × ~400ms) so scanners can countdown; relays still re-check block height before `sendRawTransaction`.
 
 **Critical:** A relay cannot take a fully signed transaction, insert a different blockhash and retain a valid payer signature. Any message mutation requires a new signature from each affected required signer.
 

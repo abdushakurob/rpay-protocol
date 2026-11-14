@@ -2,20 +2,24 @@
 
 This is a proposed technical roadmap, not a promise of dates or shipping commitments.
 
-## Phase 0 — Demonstrate the mechanism
+## Phase 0 — Exercise the mechanism on Devnet
 
 - [x] Establish the Devnet reference-application concept.
 - [x] Document the local-signing and connected-relay architecture.
-- [ ] Audit the current code paths and publish an implementation inventory.
+- [x] Extract reusable protocol logic into `@rpay/protocol` (`packages/sdk`).
+- [x] Refactor the reference wallet to consume the SDK for encode/verify/submit.
+- [ ] Audit remaining wallet-only code paths and publish an implementation inventory.
 - [ ] Verify that the application handles expiry and ambiguous submission outcomes correctly.
 
 ## Phase 1 — Specify interoperability
 
+- [x] Ship draft JSON envelopes + error codes in the SDK (`0.1-draft`).
 - [ ] Freeze canonical message envelope and binary/JSON encodings.
 - [ ] Publish byte-level transaction and QR test vectors.
 - [ ] Define session identifiers, QR chunking and error codes.
 - [ ] Add protocol-version negotiation and compatibility policy.
 - [ ] Build a reference relay CLI independent of the UI.
+- [x] Build RPay Merchant on the same SDK.
 
 ## Phase 2 — Harden security
 
@@ -35,12 +39,13 @@ This is a proposed technical roadmap, not a promise of dates or shipping commitm
 
 - [ ] Evaluate Bluetooth LE and local Wi-Fi transport adapters.
 - [ ] Define relay discovery and optional fee sponsorship safely.
-- [ ] Assess SPL token transfers and wallet integrations.
+- [x] Assess SPL token transfers and wallet integrations (USDT-DEV Devnet path + Tether WDK required for reference-wallet USDT).
+- [x] Absolute `expiresAt` / `fetchedAt` on network context + live countdown in wallet/relay UI.
 - [ ] Publish independent implementation conformance results.
 
 ## Phase 5 — Mainnet readiness review
 
-Proceed only after security review, verified confirmation semantics, recovery flows, clear risk disclosures and sustained operational testing. A Devnet demo is not sufficient grounds for mainnet launch.
+Proceed only after security review, verified confirmation semantics, recovery flows, clear risk disclosures and sustained operational testing. Running on Devnet alone is not sufficient grounds for mainnet launch.
 
 ## Success metrics
 

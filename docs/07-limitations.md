@@ -20,7 +20,7 @@ An offline recipient or merchant cannot independently verify settlement without 
 
 ## Scope of interoperability
 
-The repository demonstrates a concept, not yet a published, stable, independently implemented wire standard. Proposed message envelopes in `docs/02-protocol-specification.md` must not be advertised as implemented until validated in code and tests.
+The repository is a Devnet reference implementation, not yet a published, stable, independently implemented wire standard. Proposed message envelopes in `docs/02-protocol-specification.md` must not be advertised as implemented until validated in code and tests.
 
 ## Security and readiness
 

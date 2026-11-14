@@ -6,7 +6,7 @@
 
 ## Abstract
 
-Blockchain transfers require two separable capabilities: authority to spend and access to a network that can process the transaction. Many wallets bundle both on one device. RPay proposes a connectivity-delegation pattern in which an offline payer signs a transaction locally and an online peer broadcasts it. The peer provides communication, not spending authority. Solana remains the settlement system. The prototype uses QR codes and Solana Devnet. This paper describes the problem, mechanism, security boundaries, implementation challenges, and steps necessary to turn a working demonstration into an interoperable protocol.
+Blockchain transfers require two separable capabilities: authority to spend and access to a network that can process the transaction. Many wallets bundle both on one device. RPay proposes a connectivity-delegation pattern in which an offline payer signs a transaction locally and an online peer broadcasts it. The peer provides communication, not spending authority. Solana remains the settlement system. The prototype uses QR codes and Solana Devnet. This paper describes the problem, mechanism, security boundaries, implementation challenges, and steps necessary to turn a working Devnet implementation into an interoperable protocol.
 
 ## 1. Problem statement
 
@@ -70,7 +70,7 @@ A connected relay is an availability dependency and a potential privacy observer
 
 ## 9. Adoption scenarios
 
-Candidate settings include market stalls with a shared connected phone, intermittent-connectivity community payments, event environments and educational demonstrations. These are hypotheses requiring field testing. The system must not advertise an unconfirmed transfer as a completed merchant payment; goods release should be tied to independently verified settlement and an explicit risk policy.
+Candidate settings include market stalls with a shared connected phone, intermittent-connectivity community payments, event environments and educational Devnet pilots. These are hypotheses requiring field testing. The system must not advertise an unconfirmed transfer as a completed merchant payment; goods release should be tied to independently verified settlement and an explicit risk policy.
 
 ## 10. Development direction
 

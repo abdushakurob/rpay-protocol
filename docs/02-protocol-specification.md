@@ -1,6 +1,6 @@
 # RPay Protocol Specification
 
-**Status:** Proposed draft, version `0.1-draft`. This is a design contract, **not** a claim that the current application implements the schema below.
+**Status:** Draft `0.1-draft`. The `@rpay/protocol` SDK implements the versioned JSON envelopes, lifecycle helpers, error codes, and Solana transfer/verify/submit paths described here. Compact QR codecs (`rpay:bh:1:…`, `rpay:tx:1:…`) remain supported for the reference wallet. Conformance fixtures across independent implementations are still incomplete.
 
 ## 1. Conformance language
 
@@ -34,11 +34,15 @@ All JSON below is **illustrative**, not an existing stable wire format. A final 
   "cluster": "devnet",
   "recentBlockhash": "base58-blockhash",
   "lastValidBlockHeight": 123456,
+  "currentBlockHeight": 123300,
+  "fetchedAt": 1700000000000,
+  "expiresAt": 1700000060000,
+  "slotMs": 400,
   "feePayer": "base58-public-key"
 }
 ```
 
-The payer MUST verify that `cluster` matches its intended network. `lastValidBlockHeight` is a validity indicator associated with the fetched blockhash, not a timestamp. The payer SHOULD minimize delay before signing and relaying.
+The payer MUST verify that `cluster` matches its intended network. `lastValidBlockHeight` is a validity indicator associated with the fetched blockhash. `expiresAt` / `fetchedAt` are wall-clock helpers derived at fetch time so UIs can show an absolute countdown; chain height remains authoritative at submit. The payer SHOULD minimize delay before signing and relaying.
 
 ### 4.2 Signed transaction
 
@@ -91,4 +95,11 @@ Recommended error categories: `UNSUPPORTED_VERSION`, `WRONG_CLUSTER`, `INVALID_C
 
 ## 9. Compatibility status
 
-This document describes **proposed protocol-level behavior**. Before advertising RPay interoperability, publish: canonical payload schemas, byte-level examples, signing fixtures, QR chunking rules, implementation mappings and tests demonstrating two independent implementations can exchange a payment.
+The reference SDK (`packages/sdk`, import `@rpay/protocol`) implements:
+
+- Versioned message create/parse/validate for `network_context`, `signed_transaction`, `submission_status`, and `payment_request`
+- Lifecycle transition helpers and settlement vs pre-settlement distinctions
+- SOL transfer construction, signature verification, and relay submission
+- Legacy compact QR codecs used by RPay Wallet
+
+Before advertising multi-vendor RPay interoperability, publish: frozen schemas, byte-level examples, signing fixtures, QR chunking rules, and tests showing two independent implementations can exchange a payment.

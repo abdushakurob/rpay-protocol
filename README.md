@@ -190,17 +190,31 @@ See [SECURITY.md](SECURITY.md) for security reporting and additional considerati
 
 ## Reference Implementation
 
-The RPay repository contains an experimental reference implementation demonstrating offline transaction authorization and relay-assisted submission on Solana Devnet.
+The RPay repository contains an experimental reference implementation of offline transaction authorization and relay-assisted submission on Solana Devnet.
+
+### Protocol SDK
+
+Reusable protocol logic lives in [`packages/sdk`](packages/sdk) as `@rpay/protocol` (`0.1-draft`):
+
+- Versioned envelopes (`network_context`, `signed_transaction`, `payment_request`, …)
+- Transaction lifecycle helpers and error codes
+- SOL transfer construction, verification, and relay submission
+- Legacy compact QR codecs used by the reference wallet
+
+See [`packages/sdk/README.md`](packages/sdk/README.md) for integration examples.
+
+### Reference wallet
 
 The application uses:
 
 - **React and TypeScript** for the wallet interface.
-- **Solana Web3.js** for transaction construction, signing, and network interaction.
+- **`@rpay/protocol`** for protocol messages and Solana payment connectivity.
+- **Solana Web3.js** for RPC and key material used by the wallet host.
 - **QR-based communication** for exchanging data between disconnected wallets and connected relays.
 - **Encrypted local storage** for wallet credential persistence.
 - **Progressive Web App capabilities** for browser-based deployment.
 
-The reference implementation is not a normative requirement for future protocol clients.
+The reference wallet UI is not a normative requirement for future protocol clients.
 
 Independent implementations may use different languages, frameworks, and transport mechanisms as the protocol specification evolves.
 
@@ -219,21 +233,44 @@ Install dependencies:
 npm install
 ```
 
-Start the development server:
+Start the reference wallet:
 
 ```bash
 npm run dev
 ```
 
-The application is available at [rpay-seven.vercel.app](https://rpay-seven.vercel.app/).
+Start RPay Merchant (separate app on port 5174):
+
+```bash
+npm run dev:merchant
+```
+
+The live wallet is available at [rpay-seven.vercel.app](https://rpay-seven.vercel.app/).
 
 Use Solana Devnet test funds when experimenting with the protocol.
+
+**Merchant on Devnet:** create a payment request QR in RPay Merchant, then in the wallet use **Scan merchant request**, authorize (online or via relay), and tap **Check Solana for payment** on the merchant side. Settlement is verified on-chain — never from QR scan alone.
+
+**USDT / stablecoin on Devnet:**
+
+```powershell
+# Public Devnet RPC airdrops are closed — pay from your funded RPay wallet:
+$env:RPAY_PHRASE="your twelve recovery words"
+npm run usdt:devnet -- <YOUR_WALLET_PUBKEY>
+# copy VITE_USDT_MINT=... into .env.local (wallet + merchant)
+# optional: let others tap "Request USDT-DEV" (server-only mint authority — never VITE_):
+# FAUCET_PHRASE=<same twelve words that created the mint>
+npm run dev
+npm run dev:merchant
+```
+
+Devnet tokens are labeled **USDT-DEV** (test mint). Official Tether USDT is only assumed on mainnet-beta via `USDT_MAINNET_MINT`. The reference wallet signs USDT with Tether WDK (`signTransactionWithWdk`); hosts can also use `createWdkSigner` without changing protocol envelopes. Network context QRs carry absolute `expiresAt` / `fetchedAt` for live countdowns.
 
 ## Protocol Development
 
 RPay is an experimental protocol under active development.
 
-The initial implementation demonstrates the separation of transaction authorization from network connectivity through QR-based relaying.
+The initial implementation separates transaction authorization from network connectivity through QR-based relaying on Solana Devnet.
 
 Ongoing and proposed development areas include:
 
@@ -263,6 +300,7 @@ Technical documentation is organized around the protocol's architecture, transac
 | [Solana Integration](docs/06-solana-integration.md) | Solana-specific transaction mechanics |
 | [Limitations](docs/07-limitations.md) | Known constraints and unsupported guarantees |
 | [Roadmap](docs/08-roadmap.md) | Protocol development priorities |
+| [Tether USDT / WDK](docs/09-tether-usdt.md) | Stablecoin payments and WDK USDT signing path |
 
 Specifications are evolving alongside the reference implementation.
 
