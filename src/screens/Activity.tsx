@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react"
-import { paymentLabel, payments, type Payment } from "../activity/store"
-import { formatSol } from "../format"
+import { paymentAmountText, paymentLabel, payments, type Payment } from "../activity/store"
 import { receiptUrl } from "../solana/chain"
 import { syncPayments } from "../solana/chain"
 import { useSession } from "../account/session"
@@ -47,7 +46,7 @@ export function Activity() {
                 </div>
                 <strong className={row.direction === "in" ? "pos" : ""}>
                   {row.direction === "in" ? "+" : row.direction === "pass" ? "" : "−"}
-                  {formatSol(row.lamports)}
+                  {paymentAmountText(row)}
                 </strong>
               </li>
             ))}

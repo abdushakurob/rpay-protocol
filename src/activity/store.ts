@@ -1,6 +1,12 @@
+import { formatTokenAmount } from "@rpay/protocol"
 import { dbAll, dbPut } from "../db"
+import { formatSol } from "../format"
 
 export type PaymentStatus = "waiting" | "on-the-way" | "delivered" | "failed"
+
+export type PaymentAsset =
+  | { kind: "sol"; lamports: number }
+  | { kind: "spl"; amount: number; decimals: number; symbol: string; mint: string }
 
 export type Payment = {
   id: string
@@ -8,7 +14,7 @@ export type Payment = {
   direction: "out" | "in" | "pass"
   name: string
   counterparty: string
-  lamports: number
+  asset: PaymentAsset
   status: PaymentStatus
   at: number
 }
@@ -21,9 +27,18 @@ export function paymentLabel(payment: Payment) {
   return "Couldn't send that."
 }
 
+export function paymentAmountText(payment: Payment) {
+  if (payment.asset.kind === "spl") {
+    return `${formatTokenAmount(payment.asset.amount, payment.asset.decimals)} ${payment.asset.symbol}`
+  }
+  return `${formatSol(payment.asset.lamports)} SOL`
+}
+
 export async function payments() {
   const all = await dbAll<Payment>("activity")
-  return all.sort((a, b) => b.at - a.at)
+  return all
+    .filter((item) => item?.asset?.kind === "sol" || item?.asset?.kind === "spl")
+    .sort((a, b) => b.at - a.at)
 }
 
 export async function remember(payment: Payment) {
