@@ -5,7 +5,7 @@
 [![Solana](https://img.shields.io/badge/Solana-Devnet-9945FF?logo=solana&logoColor=white)](https://solana.com/)
 [![GitHub issues](https://img.shields.io/github/issues/abdushakurob/rpay-protocol)](https://github.com/abdushakurob/rpay-protocol/issues)
 
-[RPay](https://rpay-seven.vercel.app/) is a noncustodial transaction connectivity protocol built on [Solana](https://solana.com/) that enables wallets to authorize and submit payments without requiring every participating device to maintain an independent internet connection.
+[RPay](https://rpay.space/) is a noncustodial transaction connectivity protocol built on [Solana](https://solana.com/) that enables wallets to authorize and submit payments without requiring every participating device to maintain an independent internet connection.
 
 RPay separates transaction authorization from network communication. Disconnected wallets sign transactions locally, while connected peers provide access to the Solana blockchain for submission and settlement.
 
@@ -253,7 +253,7 @@ npm run build
 
 The build serves Merchant at `/merchant/app/`. On Vercel, the install command installs both dependency sets before the build.
 
-The live wallet is available at [rpay-seven.vercel.app](https://rpay-seven.vercel.app/).
+The live wallet is available at [wallet.rpay.space](https://wallet.rpay.space/).
 
 Use Solana Devnet test funds when experimenting with the protocol.
 
