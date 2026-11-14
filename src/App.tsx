@@ -30,8 +30,8 @@ function AppRoutes() {
     <Route path="/products" element={<ProductsPage />} />
     <Route path="/solutions" element={<SolutionsPage />} />
     <Route path="/developers" element={<DevelopersPage />} />
-    <Route path="/docs" element={<DocsPage />} />
-    <Route path="/docs/:slug" element={<DocsPage />} />
+    <Route path="/docs" element={docsHost ? <DocsPage /> : <DocsDomainRedirect />} />
+    <Route path="/docs/:slug" element={docsHost ? <DocsPage /> : <DocsDomainRedirect />} />
     <Route path="/create" element={session.status === "none" ? <AuthFrame><CreateAccount /></AuthFrame> : <Navigate to={entry} replace />} />
     <Route path="/unlock" element={session.status === "unlocked" ? <Navigate to="/wallet" replace /> : <AuthFrame><Unlock /></AuthFrame>} />
     <Route path="/wallet" element={<Wallet tab="home" />} />
@@ -43,6 +43,14 @@ function AppRoutes() {
     <Route path="/receive" element={<Wallet tab="home" overlay="receive" />} />
     <Route path="*" element={<Navigate to="/" replace />} />
   </Routes>
+}
+
+function DocsDomainRedirect() {
+  const { pathname, search, hash } = useLocation()
+  useEffect(() => {
+    window.location.replace(`https://docs.rpay.space${pathname}${search}${hash}`)
+  }, [pathname, search, hash])
+  return null
 }
 
 function AuthFrame({ children }: { children: React.ReactNode }) {
